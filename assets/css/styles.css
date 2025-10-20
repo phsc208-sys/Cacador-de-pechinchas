@@ -1,0 +1,76 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+.header {
+  background-color: #e9710f !important;
+  color: #252525;
+  padding: 15px 20px;
+  border-bottom: 2px solid #252525;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.header .btn {
+  background-color: #252525;
+  color: #fff;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.header .btn:hover {
+  background-color: #ffcc80;
+  color: #252525;
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+.footer {
+  background-color: #e9710f !important;
+  color: #252525;
+  text-align: center;
+  padding: 15px;
+}
+
+/* Cards */
+#lista-supermercados .card,
+#lista-produtos .card {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+/* Responsável */
+#responsavel {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+}
+
+#responsavel h2 {
+  color: #e9710f;
+  margin-bottom: 15px;
+}
+
+#responsavel p {
+  color: #252525;
+  margin: 5px 0;
+}
+
+#responsavel img {
+  border: 2px solid #e9710f;
+}
