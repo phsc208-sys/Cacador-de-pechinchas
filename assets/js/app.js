@@ -1,206 +1,166 @@
-// Estrutura JSON inicial
-let dados = {
-  supermercados: [
+// ====== JSON com supermercados e produtos ======
+const dadosIniciais = {
+  "supermercados": [
     {
-      id: 1,
-      nome: "Supermercado Central",
-      cidade: "São Paulo",
-      endereco: "Av. Paulista, 1000",
-      telefone: "(11) 99999-0000",
-      destaque: true,
-      imagem: "assets/img/super1.jpg",
-      produtos: [
-        { id: 1, nome: "Arroz", descricao: "Arroz branco tipo 1", preco: "R$ 20,00", marca: "Tio João", imagem: "assets/img/produto1.jpg" },
-        { id: 2, nome: "Feijão", descricao: "Feijão carioca", preco: "R$ 8,50", marca: "Camil", imagem: "assets/img/produto2.jpg" }
+      "id": 1,
+      "nome": "Supermercado BH",
+      "cidade": "Belo Horizonte",
+      "endereco": "Av. Afonso Pena, 1000",
+      "telefone": "(31) 3333-1111",
+      "imagem": "assets/img/bh.jpg",
+      "destaque": true,
+      "produtos": [
+        { "nome": "Arroz 5kg", "descricao": "Pacote de arroz branco", "preco": "R$25,00", "marca": "Tio João", "imagem": "assets/img/produtos/arroz.jpg" },
+        { "nome": "Feijão Carioca 1kg", "descricao": "Pacote de feijão", "preco": "R$8,50", "marca": "Camil", "imagem": "assets/img/produtos/feijao.jpg" },
+        { "nome": "Açúcar 1kg", "descricao": "Açúcar refinado", "preco": "R$4,50", "marca": "União", "imagem": "assets/img/produtos/acucar.jpg" },
+        { "nome": "Leite Integral 1L", "descricao": "Leite fresco integral", "preco": "R$5,50", "marca": "Itambé", "imagem": "assets/img/produtos/leite.jpg" },
+        { "nome": "Óleo de Soja 900ml", "descricao": "Óleo refinado", "preco": "R$7,00", "marca": "Liza", "imagem": "assets/img/produtos/oleo.jpg" },
+        { "nome": "Café 500g", "descricao": "Café torrado e moído", "preco": "R$15,00", "marca": "Melitta", "imagem": "assets/img/produtos/cafe.jpg" }
       ]
     },
     {
-      id: 2,
-      nome: "Supermercado da Esquina",
-      cidade: "Rio de Janeiro",
-      endereco: "Rua das Flores, 200",
-      telefone: "(21) 98888-1111",
-      destaque: false,
-      imagem: "assets/img/super2.jpg",
-      produtos: [
-        { id: 1, nome: "Macarrão", descricao: "Macarrão espaguete", preco: "R$ 7,00", marca: "Barilla", imagem: "assets/img/produto3.jpg" }
+      "id": 2,
+      "nome": "Supermercado Assaí",
+      "cidade": "Belo Horizonte",
+      "endereco": "Av. Cristiano Machado, 2000",
+      "telefone": "(31) 3333-2222",
+      "imagem": "assets/img/assai.jpg",
+      "destaque": true,
+      "produtos": [
+        { "nome": "Arroz Integral 5kg", "descricao": "Pacote integral", "preco": "R$28,00", "marca": "Tio João", "imagem": "assets/img/produtos/arroz_integral.jpg" },
+        { "nome": "Feijão Preto 1kg", "descricao": "Feijão preto", "preco": "R$9,00", "marca": "Camil", "imagem": "assets/img/produtos/feijao_preto.jpg" },
+        { "nome": "Açúcar Mascavo 1kg", "descricao": "Açúcar natural", "preco": "R$6,50", "marca": "União", "imagem": "assets/img/produtos/acucar_mascavo.jpg" },
+        { "nome": "Leite Desnatado 1L", "descricao": "Leite desnatado", "preco": "R$5,80", "marca": "Itambé", "imagem": "assets/img/produtos/leite_desnatado.jpg" },
+        { "nome": "Óleo de Milho 900ml", "descricao": "Óleo refinado", "preco": "R$7,50", "marca": "Liza", "imagem": "assets/img/produtos/oleo_milho.jpg" },
+        { "nome": "Café Torrado 500g", "descricao": "Café premium", "preco": "R$18,00", "marca": "Melitta", "imagem": "assets/img/produtos/cafe_torrado.jpg" }
+      ]
+    },
+    {
+      "id": 3,
+      "nome": "Supermercado Epa",
+      "cidade": "Belo Horizonte",
+      "endereco": "Rua Padre Eustáquio, 150",
+      "telefone": "(31) 3333-3333",
+      "imagem": "assets/img/epa.jpg",
+      "destaque": false,
+      "produtos": [
+        { "nome": "Macarrão 500g", "descricao": "Espaguete tradicional", "preco": "R$6,00", "marca": "Renata", "imagem": "assets/img/produtos/macarrao.jpg" },
+        { "nome": "Molho de Tomate 340g", "descricao": "Molho pronto", "preco": "R$4,00", "marca": "Pomarola", "imagem": "assets/img/produtos/molho_tomate.jpg" },
+        { "nome": "Sal Refinado 1kg", "descricao": "Sal refinado", "preco": "R$3,50", "marca": "Cisne", "imagem": "assets/img/produtos/sal.jpg" },
+        { "nome": "Margarina 500g", "descricao": "Margarina cremosa", "preco": "R$7,00", "marca": "Qualy", "imagem": "assets/img/produtos/margarina.jpg" },
+        { "nome": "Refrigerante 2L", "descricao": "Refrigerante cola", "preco": "R$8,00", "marca": "Coca-Cola", "imagem": "assets/img/produtos/refrigerante.jpg" },
+        { "nome": "Suco 1L", "descricao": "Suco de laranja natural", "preco": "R$6,50", "marca": "Del Valle", "imagem": "assets/img/produtos/suco.jpg" }
+      ]
+    },
+    {
+      "id": 4,
+      "nome": "Meru Prata",
+      "cidade": "Belo Horizonte",
+      "endereco": "Av. Cristiano Machado, 3000",
+      "telefone": "(31) 3333-4444",
+      "imagem": "assets/img/meru.jpg",
+      "destaque": false,
+      "produtos": [
+        { "nome": "Pão Francês 500g", "descricao": "Pão fresco", "preco": "R$6,00", "marca": "Padaria Local", "imagem": "assets/img/produtos/pao.jpg" },
+        { "nome": "Queijo Mussarela 1kg", "descricao": "Queijo fatiado", "preco": "R$35,00", "marca": "Vigor", "imagem": "assets/img/produtos/queijo.jpg" },
+        { "nome": "Presunto 1kg", "descricao": "Presunto fatiado", "preco": "R$30,00", "marca": "Sadia", "imagem": "assets/img/produtos/presunto.jpg" },
+        { "nome": "Iogurte 170g", "descricao": "Iogurte natural", "preco": "R$3,50", "marca": "Itambé", "imagem": "assets/img/produtos/iogurte.jpg" },
+        { "nome": "Manteiga 200g", "descricao": "Manteiga cremosa", "preco": "R$10,00", "marca": "Aviação", "imagem": "assets/img/produtos/manteiga.jpg" },
+        { "nome": "Cereal Matinal 500g", "descricao": "Cereal de milho", "preco": "R$12,00", "marca": "Kellogg's", "imagem": "assets/img/produtos/cereal.jpg" }
       ]
     }
   ]
 };
 
-// --------------------------- INDEX.HTML ---------------------------
+// ====== LocalStorage para persistência ======
+let supermercados = JSON.parse(localStorage.getItem("supermercados")) || dadosIniciais.supermercados;
+localStorage.setItem("supermercados", JSON.stringify(supermercados));
 
-// Montar carrossel de destaques
-function carregarCarrossel() {
-  const carrossel = document.getElementById("carrossel-destaques");
-  if (!carrossel) return;
+// ====== Função para mostrar destaques ======
+function montarDestaques() {
+  const container = document.getElementById("destaquesContainer");
+  if (!container) return;
 
-  carrossel.innerHTML = "";
+  const destaques = supermercados.filter(s => s.destaque);
+  container.innerHTML = "";
 
-  dados.supermercados.forEach((sup, index) => {
-    if (sup.destaque) {
-      const div = document.createElement("div");
-      div.className = "carousel-item" + (index === 0 ? " active" : "");
-      div.innerHTML = `
-        <img src="${sup.imagem}" class="d-block w-100" alt="${sup.nome}">
-        <div class="carousel-caption d-none d-md-block">
-          <h5>${sup.nome}</h5>
-          <p>${sup.cidade} - ${sup.endereco}</p>
-        </div>
-      `;
-      carrossel.appendChild(div);
-    }
-  });
-}
-
-// Montar lista de supermercados
-function carregarSupermercados() {
-  const lista = document.getElementById("lista-supermercados");
-  if (!lista) return;
-
-  lista.innerHTML = "";
-
-  dados.supermercados.forEach(sup => {
-    const div = document.createElement("div");
-    div.className = "col-md-4";
-    div.innerHTML = `
-      <div class="card">
-        <img src="${sup.imagem}" class="card-img-top" alt="${sup.nome}">
-        <div class="card-body">
-          <h5 class="card-title">${sup.nome}</h5>
-          <p class="card-text">${sup.cidade} - ${sup.endereco}</p>
-          <a href="detalhe.html?id=${sup.id}" class="btn btn-primary">Ver Detalhes</a>
+  destaques.forEach((s, index) => {
+    const active = index === 0 ? "active" : "";
+    container.innerHTML += `
+      <div class="carousel-item ${active}">
+        <img src="${s.imagem}" class="d-block w-100" alt="${s.nome}">
+        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+          <h5>${s.nome}</h5>
+          <p>${s.cidade}</p>
         </div>
       </div>
     `;
-    lista.appendChild(div);
   });
 }
 
-// Botões Início e Adicionar Experiência
-document.addEventListener("DOMContentLoaded", () => {
-  carregarCarrossel();
-  carregarSupermercados();
+// ====== Função para mostrar lista de supermercados ======
+function montarListaSupermercados() {
+  const container = document.getElementById("supermercadosContainer");
+  if (!container) return;
 
-  const btnInicio = document.getElementById("btn-inicio");
-  const btnAdicionar = document.getElementById("btn-adicionar");
+  container.innerHTML = "";
+  supermercados.forEach(s => {
+    container.innerHTML += `
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <img src="${s.imagem}" class="card-img-top" alt="${s.nome}">
+          <div class="card-body">
+            <h5 class="card-title">${s.nome}</h5>
+            <p class="card-text">${s.cidade} - ${s.endereco}</p>
+            <a href="detalhe.html?id=${s.id}" class="btn btn-primary">Detalhes</a>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
 
-  if (btnInicio) {
-    btnInicio.addEventListener("click", () => {
-      document.getElementById("lista-supermercados").scrollIntoView({ behavior: "smooth" });
-    });
-  }
-
-  if (btnAdicionar) {
-    btnAdicionar.addEventListener("click", () => {
-      window.location.href = "cadastro.html";
-    });
-  }
-
-  carregarDetalhes();
-  carregarCadastro();
-});
-
-// --------------------------- DETALHE.HTML ---------------------------
-function carregarDetalhes() {
-  const nomeSuper = document.getElementById("nome-supermercado");
-  const infoSuper = document.getElementById("info-supermercado");
-  const listaProdutos = document.getElementById("lista-produtos");
-
-  if (!nomeSuper) return;
+// ====== Página de detalhes ======
+function montarDetalhes() {
+  const container = document.getElementById("detalheContainer");
+  if (!container) return;
 
   const params = new URLSearchParams(window.location.search);
-  const id = parseInt(params.get("id"));
+  const id = Number(params.get("id"));
+  const s = supermercados.find(s => s.id === id);
+  if (!s) {
+    container.innerHTML = "<p>Supermercado não encontrado!</p>";
+    return;
+  }
 
-  const sup = dados.supermercados.find(s => s.id === id);
-  if (!sup) return;
-
-  nomeSuper.textContent = sup.nome;
-
-  infoSuper.innerHTML = `
-    <p><strong>Cidade:</strong> ${sup.cidade}</p>
-    <p><strong>Endereço:</strong> ${sup.endereco}</p>
-    <p><strong>Telefone:</strong> ${sup.telefone}</p>
-    <img src="${sup.imagem}" class="img-fluid rounded mb-3" alt="${sup.nome}">
-  `;
-
-  listaProdutos.innerHTML = "";
-
-  sup.produtos.forEach(prod => {
-    const div = document.createElement("div");
-    div.className = "col-md-4";
-    div.innerHTML = `
-      <div class="card">
-        <img src="${prod.imagem}" class="card-img-top" alt="${prod.nome}">
-        <div class="card-body">
-          <h5 class="card-title">${prod.nome}</h5>
-          <p class="card-text">${prod.descricao}</p>
-          <p class="card-text"><strong>Preço:</strong> ${prod.preco}</p>
-          <p class="card-text"><strong>Marca:</strong> ${prod.marca}</p>
+  container.innerHTML = `
+    <h2>${s.nome}</h2>
+    <p><strong>Cidade:</strong> ${s.cidade}</p>
+    <p><strong>Endereço:</strong> ${s.endereco}</p>
+    <p><strong>Telefone:</strong> ${s.telefone}</p>
+    <img src="${s.imagem}" alt="${s.nome}" class="img-fluid mb-4">
+    <h3>Produtos</h3>
+    <div class="row">
+      ${s.produtos.map(p => `
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <img src="${p.imagem}" class="card-img-top" alt="${p.nome}">
+            <div class="card-body">
+              <h5 class="card-title">${p.nome}</h5>
+              <p class="card-text">${p.descricao}</p>
+              <p class="card-text"><strong>Preço:</strong> ${p.preco}</p>
+              <p class="card-text"><strong>Marca:</strong> ${p.marca}</p>
+            </div>
+          </div>
         </div>
-      </div>
-    `;
-    listaProdutos.appendChild(div);
-  });
+      `).join("")}
+    </div>
+  `;
 }
 
-// --------------------------- CADASTRO.HTML ---------------------------
-function carregarCadastro() {
-  const form = document.getElementById("form-supermercado");
-  const btnAddProduto = document.getElementById("btn-add-produto");
-  const produtosDiv = document.getElementById("produtos-adicionados");
-
-  if (!form) return;
-
-  let produtosTemp = [];
-
-  btnAddProduto.addEventListener("click", () => {
-    const nome = document.getElementById("prod-nome").value;
-    const desc = document.getElementById("prod-desc").value;
-    const preco = document.getElementById("prod-preco").value;
-    const marca = document.getElementById("prod-marca").value;
-    const img = document.getElementById("prod-img").value;
-
-    if (!nome) return alert("Preencha o nome do produto.");
-
-    const produto = { id: produtosTemp.length + 1, nome, descricao: desc, preco, marca, imagem: img };
-    produtosTemp.push(produto);
-
-    produtosDiv.innerHTML += `<p>${produto.nome} - ${produto.marca} (${produto.preco})</p>`;
-
-    // Limpar campos
-    document.getElementById("prod-nome").value = "";
-    document.getElementById("prod-desc").value = "";
-    document.getElementById("prod-preco").value = "";
-    document.getElementById("prod-marca").value = "";
-    document.getElementById("prod-img").value = "";
-  });
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const nome = document.getElementById("sup-nome").value;
-    const cidade = document.getElementById("sup-cidade").value;
-    const endereco = document.getElementById("sup-endereco").value;
-    const telefone = document.getElementById("sup-telefone").value;
-    const imagem = document.getElementById("sup-img").value;
-    const destaque = document.getElementById("sup-destaque").checked;
-
-    const novoSup = {
-      id: dados.supermercados.length + 1,
-      nome,
-      cidade,
-      endereco,
-      telefone,
-      destaque,
-      imagem,
-      produtos: produtosTemp
-    };
-
-    dados.supermercados.push(novoSup);
-
-    alert("Supermercado cadastrado com sucesso!");
-    window.location.href = "index.html";
-  });
-}
+// ====== Inicialização ======
+document.addEventListener("DOMContentLoaded", () => {
+  montarDestaques();
+  montarListaSupermercados();
+  montarDetalhes();
+});
