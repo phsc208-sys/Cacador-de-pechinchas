@@ -42,7 +42,7 @@ const dadosIniciais = {
       "endereco": "Rua Padre Eustáquio, 150",
       "telefone": "(31) 3333-3333",
       "imagem": "assets/img/epa.jpg",
-      "destaque": false,
+      "destaque": true,
       "produtos": [
         { "nome": "Macarrão 500g", "descricao": "Espaguete tradicional", "preco": "R$6,00", "marca": "Renata", "imagem": "assets/img/produtos/macarrao.jpg" },
         { "nome": "Molho de Tomate 340g", "descricao": "Molho pronto", "preco": "R$4,00", "marca": "Pomarola", "imagem": "assets/img/produtos/molho_tomate.jpg" },
