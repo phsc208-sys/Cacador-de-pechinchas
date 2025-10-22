@@ -54,7 +54,7 @@ const dadosIniciais = {
     },
     {
       "id": 4,
-      "nome": "Meru Prata",
+      "nome": "Meu Prata",
       "cidade": "Belo Horizonte",
       "endereco": "Av. Cristiano Machado, 3000",
       "telefone": "(31) 3333-4444",
