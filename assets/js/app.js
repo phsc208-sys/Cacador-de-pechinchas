@@ -7,7 +7,7 @@ const dadosIniciais = {
       "cidade": "Belo Horizonte",
       "endereco": "Av. Afonso Pena, 1000",
       "telefone": "(31) 3333-1111",
-      "imagem": "assets/img/bh.jpg",
+      "imagem": "assets/img/bh.jpeg",
       "destaque": true,
       "produtos": [
         { "nome": "Arroz 5kg", "descricao": "Pacote de arroz branco", "preco": "R$25,00", "marca": "Tio João", "imagem": "assets/img/produtos/arroz.jpg" },
@@ -24,7 +24,7 @@ const dadosIniciais = {
       "cidade": "Belo Horizonte",
       "endereco": "Av. Cristiano Machado, 2000",
       "telefone": "(31) 3333-2222",
-      "imagem": "assets/img/assai.jpg",
+      "imagem": "assets/img/Assaí.webp",
       "destaque": true,
       "produtos": [
         { "nome": "Arroz Integral 5kg", "descricao": "Pacote integral", "preco": "R$28,00", "marca": "Tio João", "imagem": "assets/img/produtos/arroz_integral.jpg" },
@@ -41,7 +41,7 @@ const dadosIniciais = {
       "cidade": "Belo Horizonte",
       "endereco": "Rua Padre Eustáquio, 150",
       "telefone": "(31) 3333-3333",
-      "imagem": "assets/img/epa.jpg",
+      "imagem": "assets/img/epa.webp",
       "destaque": true,
       "produtos": [
         { "nome": "Macarrão 500g", "descricao": "Espaguete tradicional", "preco": "R$6,00", "marca": "Renata", "imagem": "assets/img/produtos/macarrao.jpg" },
@@ -58,7 +58,7 @@ const dadosIniciais = {
       "cidade": "Belo Horizonte",
       "endereco": "Av. Cristiano Machado, 3000",
       "telefone": "(31) 3333-4444",
-      "imagem": "assets/img/meru.jpg",
+      "imagem": "assets/img/meuprata.jpg",
       "destaque": false,
       "produtos": [
         { "nome": "Pão Francês 500g", "descricao": "Pão fresco", "preco": "R$6,00", "marca": "Padaria Local", "imagem": "assets/img/produtos/pao.jpg" },
@@ -72,11 +72,11 @@ const dadosIniciais = {
   ]
 };
 
-// ====== LocalStorage para persistência ======
-let supermercados = JSON.parse(localStorage.getItem("supermercados")) || dadosIniciais.supermercados;
+// ====== LocalStorage (sobrescrevendo para garantir imagens) ======
+let supermercados = dadosIniciais.supermercados;
 localStorage.setItem("supermercados", JSON.stringify(supermercados));
 
-// ====== Função para mostrar destaques ======
+// ====== Carrossel de destaques ======
 function montarDestaques() {
   const container = document.getElementById("destaquesContainer");
   if (!container) return;
@@ -98,7 +98,7 @@ function montarDestaques() {
   });
 }
 
-// ====== Função para mostrar lista de supermercados ======
+// ====== Lista de supermercados ======
 function montarListaSupermercados() {
   const container = document.getElementById("supermercadosContainer");
   if (!container) return;
@@ -148,8 +148,8 @@ function montarDetalhes() {
             <div class="card-body">
               <h5 class="card-title">${p.nome}</h5>
               <p class="card-text">${p.descricao}</p>
-              <p class="card-text"><strong>Preço:</strong> ${p.preco}</p>
-              <p class="card-text"><strong>Marca:</strong> ${p.marca}</p>
+              <p><strong>Preço:</strong> ${p.preco}</p>
+              <p><strong>Marca:</strong> ${p.marca}</p>
             </div>
           </div>
         </div>
