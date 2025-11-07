@@ -1,166 +1,324 @@
-// ====== JSON com supermercados e produtos ======
-const dadosIniciais = {
-  "supermercados": [
-    {
-      "id": 1,
-      "nome": "Supermercado BH",
-      "cidade": "Belo Horizonte",
-      "endereco": "Av. Afonso Pena, 1000",
-      "telefone": "(31) 3333-1111",
-      "imagem": "assets/img/bh.jpeg",
-      "destaque": true,
-      "produtos": [
-        { "nome": "Arroz 5kg", "descricao": "Pacote de arroz branco", "preco": "R$25,00", "marca": "Tio João", "imagem": "assets/img/produtos/arroz.jpg" },
-        { "nome": "Feijão Carioca 1kg", "descricao": "Pacote de feijão", "preco": "R$8,50", "marca": "Camil", "imagem": "assets/img/produtos/feijao.jpg" },
-        { "nome": "Açúcar 1kg", "descricao": "Açúcar refinado", "preco": "R$4,50", "marca": "União", "imagem": "assets/img/produtos/acucar.jpg" },
-        { "nome": "Leite Integral 1L", "descricao": "Leite fresco integral", "preco": "R$5,50", "marca": "Itambé", "imagem": "assets/img/produtos/leite.jpg" },
-        { "nome": "Óleo de Soja 900ml", "descricao": "Óleo refinado", "preco": "R$7,00", "marca": "Liza", "imagem": "assets/img/produtos/oleo.jpg" },
-        { "nome": "Café 500g", "descricao": "Café torrado e moído", "preco": "R$15,00", "marca": "Melitta", "imagem": "assets/img/produtos/cafe.jpg" }
-      ]
-    },
-    {
-      "id": 2,
-      "nome": "Supermercado Assaí",
-      "cidade": "Belo Horizonte",
-      "endereco": "Av. Cristiano Machado, 2000",
-      "telefone": "(31) 3333-2222",
-      "imagem": "assets/img/Assaí.webp",
-      "destaque": true,
-      "produtos": [
-        { "nome": "Arroz Integral 5kg", "descricao": "Pacote integral", "preco": "R$28,00", "marca": "Tio João", "imagem": "assets/img/produtos/arroz_integral.jpg" },
-        { "nome": "Feijão Preto 1kg", "descricao": "Feijão preto", "preco": "R$9,00", "marca": "Camil", "imagem": "assets/img/produtos/feijao_preto.jpg" },
-        { "nome": "Açúcar Mascavo 1kg", "descricao": "Açúcar natural", "preco": "R$6,50", "marca": "União", "imagem": "assets/img/produtos/acucar_mascavo.jpg" },
-        { "nome": "Leite Desnatado 1L", "descricao": "Leite desnatado", "preco": "R$5,80", "marca": "Itambé", "imagem": "assets/img/produtos/leite_desnatado.jpg" },
-        { "nome": "Óleo de Milho 900ml", "descricao": "Óleo refinado", "preco": "R$7,50", "marca": "Liza", "imagem": "assets/img/produtos/oleo_milho.jpg" },
-        { "nome": "Café Torrado 500g", "descricao": "Café premium", "preco": "R$18,00", "marca": "Melitta", "imagem": "assets/img/produtos/cafe_torrado.jpg" }
-      ]
-    },
-    {
-      "id": 3,
-      "nome": "Supermercado Epa",
-      "cidade": "Belo Horizonte",
-      "endereco": "Rua Padre Eustáquio, 150",
-      "telefone": "(31) 3333-3333",
-      "imagem": "assets/img/epa.webp",
-      "destaque": true,
-      "produtos": [
-        { "nome": "Macarrão 500g", "descricao": "Espaguete tradicional", "preco": "R$6,00", "marca": "Renata", "imagem": "assets/img/produtos/macarrao.jpg" },
-        { "nome": "Molho de Tomate 340g", "descricao": "Molho pronto", "preco": "R$4,00", "marca": "Pomarola", "imagem": "assets/img/produtos/molho_tomate.jpg" },
-        { "nome": "Sal Refinado 1kg", "descricao": "Sal refinado", "preco": "R$3,50", "marca": "Cisne", "imagem": "assets/img/produtos/sal.jpg" },
-        { "nome": "Margarina 500g", "descricao": "Margarina cremosa", "preco": "R$7,00", "marca": "Qualy", "imagem": "assets/img/produtos/margarina.jpg" },
-        { "nome": "Refrigerante 2L", "descricao": "Refrigerante cola", "preco": "R$8,00", "marca": "Coca-Cola", "imagem": "assets/img/produtos/refrigerante.jpg" },
-        { "nome": "Suco 1L", "descricao": "Suco de laranja natural", "preco": "R$6,50", "marca": "Del Valle", "imagem": "assets/img/produtos/suco.jpg" }
-      ]
-    },
-    {
-      "id": 4,
-      "nome": "Meu Prata",
-      "cidade": "Belo Horizonte",
-      "endereco": "Av. Cristiano Machado, 3000",
-      "telefone": "(31) 3333-4444",
-      "imagem": "assets/img/meuprata.jpg",
-      "destaque": false,
-      "produtos": [
-        { "nome": "Pão Francês 500g", "descricao": "Pão fresco", "preco": "R$6,00", "marca": "Padaria Local", "imagem": "assets/img/produtos/pao.jpg" },
-        { "nome": "Queijo Mussarela 1kg", "descricao": "Queijo fatiado", "preco": "R$35,00", "marca": "Vigor", "imagem": "assets/img/produtos/queijo.jpg" },
-        { "nome": "Presunto 1kg", "descricao": "Presunto fatiado", "preco": "R$30,00", "marca": "Sadia", "imagem": "assets/img/produtos/presunto.jpg" },
-        { "nome": "Iogurte 170g", "descricao": "Iogurte natural", "preco": "R$3,50", "marca": "Itambé", "imagem": "assets/img/produtos/iogurte.jpg" },
-        { "nome": "Manteiga 200g", "descricao": "Manteiga cremosa", "preco": "R$10,00", "marca": "Aviação", "imagem": "assets/img/produtos/manteiga.jpg" },
-        { "nome": "Cereal Matinal 500g", "descricao": "Cereal de milho", "preco": "R$12,00", "marca": "Kellogg's", "imagem": "assets/img/produtos/cereal.jpg" }
-      ]
-    }
-  ]
-};
+const API_URL = "http://localhost:3000/supermercados";
 
-// ====== LocalStorage (sobrescrevendo para garantir imagens) ======
-let supermercados = dadosIniciais.supermercados;
-localStorage.setItem("supermercados", JSON.stringify(supermercados));
+let produtosTemporarios = [];
 
-// ====== Carrossel de destaques ======
-function montarDestaques() {
-  const container = document.getElementById("destaquesContainer");
-  if (!container) return;
-
-  const destaques = supermercados.filter(s => s.destaque);
-  container.innerHTML = "";
-
-  destaques.forEach((s, index) => {
-    const active = index === 0 ? "active" : "";
-    container.innerHTML += `
-      <div class="carousel-item ${active}">
-        <img src="${s.imagem}" class="d-block w-100" alt="${s.nome}">
-        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
-          <h5>${s.nome}</h5>
-          <p>${s.cidade}</p>
-        </div>
-      </div>
-    `;
-  });
-}
-
-// ====== Lista de supermercados ======
-function montarListaSupermercados() {
-  const container = document.getElementById("supermercadosContainer");
-  if (!container) return;
-
-  container.innerHTML = "";
-  supermercados.forEach(s => {
-    container.innerHTML += `
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <img src="${s.imagem}" class="card-img-top" alt="${s.nome}">
-          <div class="card-body">
-            <h5 class="card-title">${s.nome}</h5>
-            <p class="card-text">${s.cidade} - ${s.endereco}</p>
-            <a href="detalhe.html?id=${s.id}" class="btn btn-primary">Detalhes</a>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-}
-
-// ====== Página de detalhes ======
-function montarDetalhes() {
-  const container = document.getElementById("detalheContainer");
-  if (!container) return;
-
-  const params = new URLSearchParams(window.location.search);
-  const id = Number(params.get("id"));
-  const s = supermercados.find(s => s.id === id);
-  if (!s) {
-    container.innerHTML = "<p>Supermercado não encontrado!</p>";
-    return;
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("destaquesContainer")) {
+    montarDestaques();
+    montarListaSupermercados();
   }
 
-  container.innerHTML = `
-    <h2>${s.nome}</h2>
-    <p><strong>Cidade:</strong> ${s.cidade}</p>
-    <p><strong>Endereço:</strong> ${s.endereco}</p>
-    <p><strong>Telefone:</strong> ${s.telefone}</p>
-    <img src="${s.imagem}" alt="${s.nome}" class="img-fluid mb-4">
-    <h3>Produtos</h3>
-    <div class="row">
-      ${s.produtos.map(p => `
-        <div class="col-md-4 mb-3">
+  if (document.getElementById("detalheContainer")) {
+    montarDetalhes();
+  }
+  
+  if (document.getElementById("form-supermercado")) {
+    configurarFormulario();
+  }
+  
+  const btnAdicionar = document.getElementById("btn-adicionar");
+  if(btnAdicionar) {
+    btnAdicionar.addEventListener("click", () => {
+      window.location.href = "cadastro.html";
+    });
+  }
+  
+  const btnInicio = document.getElementById("btn-inicio");
+  if(btnInicio) {
+    btnInicio.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  }
+});
+
+async function montarDestaques() {
+  const container = document.getElementById("destaquesContainer");
+  
+  try {
+    const response = await fetch(`${API_URL}?destaque=true`);
+    if (!response.ok) throw new Error("Erro ao buscar destaques.");
+    
+    const destaques = await response.json();
+    
+    container.innerHTML = ""; 
+    destaques.forEach((s, index) => {
+      const active = index === 0 ? "active" : "";
+      container.innerHTML += `
+        <div class="carousel-item ${active}">
+          <img src="${s.imagem}" class="d-block w-100" alt="${s.nome}">
+          <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+            <h5>${s.nome}</h5>
+            <p>${s.cidade}</p>
+          </div>
+        </div>
+      `;
+    });
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = "<p>Não foi possível carregar os destaques.</p>";
+  }
+}
+
+async function montarListaSupermercados() {
+  const container = document.getElementById("supermercadosContainer");
+  
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error("Erro ao buscar supermercados.");
+    
+    const supermercados = await response.json();
+    
+    container.innerHTML = ""; 
+    supermercados.forEach(s => {
+      container.innerHTML += `
+        <div class="col-md-4 mb-4">
           <div class="card h-100">
-            <img src="${p.imagem}" class="card-img-top" alt="${p.nome}">
+            <img src="${s.imagem}" class="card-img-top" alt="${s.nome}">
             <div class="card-body">
-              <h5 class="card-title">${p.nome}</h5>
-              <p class="card-text">${p.descricao}</p>
-              <p><strong>Preço:</strong> ${p.preco}</p>
-              <p><strong>Marca:</strong> ${p.marca}</p>
+              <h5 class="card-title">${s.nome}</h5>
+              <p class="card-text">${s.cidade} - ${s.endereco}</p>
+              <a href="detalhe.html?id=${s.id}" class="btn btn-primary">Detalhes</a>
             </div>
           </div>
         </div>
-      `).join("")}
-    </div>
-  `;
+      `;
+    });
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = "<p>Não foi possível carregar os supermercados.</p>";
+  }
 }
 
-// ====== Inicialização ======
-document.addEventListener("DOMContentLoaded", () => {
-  montarDestaques();
-  montarListaSupermercados();
-  montarDetalhes();
-});
+async function montarDetalhes() {
+  const container = document.getElementById("detalheContainer");
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  if (!id) {
+    container.innerHTML = "<p>ID do supermercado não fornecido!</p>";
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/${id}`);
+    if (!response.ok) throw new Error("Supermercado não encontrado.");
+    
+    const s = await response.json();
+    
+    container.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>${s.nome}</h2>
+        <div>
+          <a href="cadastro.html?id=${s.id}" class="btn btn-success">Editar</a>
+          <button id="btn-excluir" class="btn btn-danger">Excluir</button>
+        </div>
+      </div>
+      <p><strong>Cidade:</strong> ${s.cidade}</p>
+      <p><strong>Endereço:</strong> ${s.endereco}</p>
+      <p><strong>Telefone:</strong> ${s.telefone}</p>
+      <img src="${s.imagem}" alt="${s.nome}" class="img-fluid mb-4">
+      <h3>Produtos</h3>
+      <div class="row">
+        ${s.produtos.map(p => `
+          <div class="col-md-4 mb-3">
+            <div class="card h-100">
+              <img src="${p.imagem}" class="card-img-top" alt="${p.nome}">
+              <div class="card-body">
+                <h5 class="card-title">${p.nome}</h5>
+                <p class="card-text">${p.descricao}</p>
+                <p><strong>Preço:</strong> ${p.preco}</p>
+                <p><strong>Marca:</strong> ${p.marca}</p>
+              </div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    document.getElementById("btn-excluir").addEventListener("click", () => handleExcluir(id));
+
+  } catch (error) {
+    console.error(error);
+    container.innerHTML = `<p>${error.message}</p>`;
+  }
+}
+
+async function configurarFormulario() {
+  const form = document.getElementById("form-supermercado");
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  document.getElementById("btn-add-produto").addEventListener("click", adicionarProdutoTemporario);
+
+  if (id) {
+    document.querySelector("header h1").textContent = "Editar Supermercado";
+    document.querySelector("button[type='submit']").textContent = "Salvar Alterações";
+    
+    try {
+      const response = await fetch(`${API_URL}/${id}`);
+      const data = await response.json();
+
+      document.getElementById("sup-nome").value = data.nome;
+      document.getElementById("sup-cidade").value = data.cidade;
+      document.getElementById("sup-endereco").value = data.endereco;
+      document.getElementById("sup-telefone").value = data.telefone;
+      document.getElementById("sup-img").value = data.imagem;
+      document.getElementById("sup-destaque").checked = data.destaque;
+      
+      const idInput = document.createElement('input');
+      idInput.type = "hidden";
+      idInput.id = "sup-id";
+      idInput.value = id;
+      form.prepend(idInput);
+
+      produtosTemporarios = data.produtos || [];
+      renderizarProdutosTemporarios();
+
+      form.addEventListener("submit", handleUpdate);
+
+    } catch (error) {
+      console.error("Erro ao carregar dados para edição:", error);
+    }
+
+  } else {
+    form.addEventListener("submit", handleCreate);
+  }
+}
+
+function adicionarProdutoTemporario() {
+  const produto = {
+    nome: document.getElementById("prod-nome").value,
+    descricao: document.getElementById("prod-desc").value,
+    preco: document.getElementById("prod-preco").value,
+    marca: document.getElementById("prod-marca").value,
+    imagem: document.getElementById("prod-img").value,
+  };
+
+  if (!produto.nome || !produto.preco) {
+    alert("Nome e Preço do produto são obrigatórios.");
+    return;
+  }
+
+  produtosTemporarios.push(produto);
+  renderizarProdutosTemporarios();
+  
+  document.getElementById("prod-nome").value = "";
+  document.getElementById("prod-desc").value = "";
+  document.getElementById("prod-preco").value = "";
+  document.getElementById("prod-marca").value = "";
+  document.getElementById("prod-img").value = "";
+}
+
+function renderizarProdutosTemporarios() {
+  const container = document.getElementById("produtos-adicionados");
+  container.innerHTML = "";
+  
+  if(produtosTemporarios.length === 0) {
+    container.innerHTML = "<p>Nenhum produto adicionado.</p>";
+    return;
+  }
+  
+  produtosTemporarios.forEach((prod, index) => {
+    container.innerHTML += `
+      <div class="card card-body mb-2">
+        <strong>${prod.nome}</strong> - ${prod.preco}
+        <button type"button" class="btn btn-sm btn-danger mt-1" onclick="removerProdutoTemporario(${index})">Remover</button>
+      </div>
+    `;
+  });
+}
+
+window.removerProdutoTemporario = function(index) {
+  produtosTemporarios.splice(index, 1); 
+  renderizarProdutosTemporarios(); 
+}
+
+async function handleCreate(event) {
+  event.preventDefault(); 
+
+  const supermercado = {
+    nome: document.getElementById("sup-nome").value,
+    cidade: document.getElementById("sup-cidade").value,
+    endereco: document.getElementById("sup-endereco").value,
+    telefone: document.getElementById("sup-telefone").value,
+    imagem: document.getElementById("sup-img").value,
+    destaque: document.getElementById("sup-destaque").checked,
+    produtos: produtosTemporarios 
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(supermercado),
+    });
+
+    if (!response.ok) throw new Error("Erro ao cadastrar supermercado.");
+
+    alert("Supermercado cadastrado com sucesso!");
+    produtosTemporarios = []; 
+    window.location.href = "index.html"; 
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+}
+
+async function handleUpdate(event) {
+  event.preventDefault(); 
+  const id = document.getElementById("sup-id").value;
+  
+  const supermercado = {
+    nome: document.getElementById("sup-nome").value,
+    cidade: document.getElementById("sup-cidade").value,
+    endereco: document.getElementById("sup-endereco").value,
+    telefone: document.getElementById("sup-telefone").value,
+    imagem: document.getElementById("sup-img").value,
+    destaque: document.getElementById("sup-destaque").checked,
+    produtos: produtosTemporarios 
+  };
+  
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(supermercado),
+    });
+
+    if (!response.ok) throw new Error("Erro ao atualizar supermercado.");
+
+    alert("Supermercado atualizado com sucesso!");
+    produtosTemporarios = []; 
+    window.location.href = `detalhe.html?id=${id}`; 
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+}
+
+async function handleExcluir(id) {
+  if (!confirm("Tem certeza que deseja excluir este supermercado?")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    });
+    
+    if (!response.ok) throw new Error("Erro ao excluir supermercado.");
+    
+    alert("Supermercado excluído com sucesso!");
+    window.location.href = "index.html"; 
+    
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+}
