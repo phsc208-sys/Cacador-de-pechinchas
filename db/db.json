@@ -227,5 +227,9 @@
       "destaque": false,
       "produtos": []
     }
+  ],
+  "lista_urls_nf": [
+    "https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p=URL_ANTIGA_EXEMPLO|...",
+    "https://portalsped.fazenda.mg.gov.br/portalnfce/sistema/qrcode.xhtml?p=31251032907983000998651040001446101301679146|2|1|1|47e517fe819a18f852aa6202b98b8184f739405d"
   ]
 }
