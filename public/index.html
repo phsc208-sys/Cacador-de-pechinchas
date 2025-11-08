@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,24 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
+
 <body>
   <!-- Cabeçalho -->
-<header class="header d-flex flex-column align-items-start p-3 bg-warning text-dark">
-  <h1 class="mb-3">Caçador de Pechinchas</h1>
-  <div class="d-flex gap-2">
-    <button id="btn-inicio" class="btn btn-dark">Início</button>
-    <button id="btn-adicionar" class="btn btn-dark">Adicionar Experiência</button>
-  </div>
-</header>
+  <header class="header d-flex flex-column align-items-start p-3 bg-warning text-dark">
+    <h1 class="mb-3">Caçador de Pechinchas</h1>
+    <div class="d-flex gap-2">
+      <button id="btn-inicio" class="btn btn-dark">Início</button>
+      <button id="btn-adicionar" class="btn btn-dark">Adicionar Experiência</button>
+    </div>
+    <div class="w-100 mt-3" id="form-importar-container">
+      <label for="input-chave-nf" class="form-label">Importar por Chave de NF:</label>
+      <div class="input-group">
+        <input type="text" id="input-chave-nf" class="form-control"
+          placeholder="Cole a chave da NF (o texto depois do 'p=')">
+        <button id="btn-importar-nf" class="btn btn-success">Importar</button>
+      </div>
+    </div>
+  </header>
 
   <!-- Conteúdo principal -->
   <main class="main container mt-4">
@@ -34,21 +44,22 @@
     <div class="row" id="supermercadosContainer"></div>
   </main>
 
-<!--  responsável -->
-<section id="responsavel" class="mt-5 p-4 bg-light rounded text-center">
-  <h2>Sobre o responsável</h2>
-  <p><strong>Nome:</strong> Pedro Henrique Santos Cardoso</p>
-  <p><strong>Código:</strong> 1603205 </p>
-  <p>Aluno do curso de Desenvolvimento Web, responsável pela criação e manutenção deste projeto.</p>
-</section>
+  <!--  responsável -->
+  <section id="responsavel" class="mt-5 p-4 bg-light rounded text-center">
+    <h2>Sobre o responsável</h2>
+    <p><strong>Nome:</strong> Pedro Henrique Santos Cardoso</p>
+    <p><strong>Código:</strong> 1603205 </p>
+    <p>Aluno do curso de Desenvolvimento Web, responsável pela criação e manutenção deste projeto.</p>
+  </section>
 
   <!-- Rodapé -->
-<footer class="footer mt-auto p-3 bg-warning text-dark text-center">
-  © 2025 - Projeto Estabelecimentos
-</footer>
+  <footer class="footer mt-auto p-3 bg-warning text-dark text-center">
+    © 2025 - Projeto Estabelecimentos
+  </footer>
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
+
 </html>

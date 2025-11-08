@@ -226,6 +226,122 @@
       "imagem": "TESTE",
       "destaque": false,
       "produtos": []
+    },
+    {
+      "id": "358b",
+      "nome": "Meu Prata Supermercados Ltda",
+      "cidade": "3106200 - BELO HORIZONTE",
+      "endereco": "R Itaituba",
+      "telefone": "",
+      "imagem": "",
+      "destaque": false,
+      "produtos": [
+        {
+          "nome": "REFRIG ITUBAINA 355ML ORIGINAL LN",
+          "descricao": "",
+          "preco": "R$ 3,79",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "LEITE LV CAMPONESA 1L ZERO LACT INTEG",
+          "descricao": "",
+          "preco": "R$ 5,89",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "IOG BOB ESPONJA CONFETE 125GR MORANGO",
+          "descricao": "",
+          "preco": "R$ 4,49",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "OVOS BRANCOS UP C 20",
+          "descricao": "",
+          "preco": "R$ 8,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "LASANHA SEARA 350GR BOLONHESA",
+          "descricao": "",
+          "preco": "R$ 10,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "LASANHA SEARA 350GR BOLONHESA",
+          "descricao": "",
+          "preco": "R$ 10,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "PD MUCARELA KG PD",
+          "descricao": "",
+          "preco": "R$ 10,23",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "MARG QUALY 500GR C SAL",
+          "descricao": "",
+          "preco": "R$ 8,98",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "DESOD CR HERBISSIMO 55GR SENSITIVE",
+          "descricao": "",
+          "preco": "R$ 6,49",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "MOLHO PIM ALHO ROXO 150ML PIM MALAGUETA",
+          "descricao": "",
+          "preco": "R$ 8,49",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "SAB LUX BOTANICALS 125GR BUQUE JASMIM",
+          "descricao": "",
+          "preco": "R$ 3,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "COOKIES BAUDUCCO MAXI 96GR DENTADURA",
+          "descricao": "",
+          "preco": "R$ 5,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "MORTAD PERDIGAO KG BOLOGNELLA",
+          "descricao": "",
+          "preco": "R$ 4,78",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "PAO FORMA VISCONTI 400GR TRADICIONAL",
+          "descricao": "",
+          "preco": "R$ 6,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        },
+        {
+          "nome": "MILHO PIPOCA ANCHIETA 500GR",
+          "descricao": "",
+          "preco": "R$ 3,99",
+          "marca": "Marca N/D",
+          "imagem": ""
+        }
+      ]
     }
   ]
 }
