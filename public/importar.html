@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Importar Nota Fiscal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Importar Nova Nota Fiscal</h1>
+    <a href="index.html" class="btn btn-primary mt-2">Voltar</a>
+  </header>
+
+  <main class="main container my-5">
+    <form id="form-importar-nf" class="mb-5">
+      <div class="mb-3">
+        <label for="nf-url" class="form-label">URL Completa da Nota Fiscal</label>
+        <input type="url" id="nf-url" class="form-control" placeholder="https://..." required>
+        <div class="form-text">Insira a URL completa (chave e QR code) da nota fiscal eletrônica (NFC-e).</div>
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar e Importar</button>
+    </form>
+  </main>
+
+  <footer class="footer text-center">
+    <p>© 2025 - Sistema de Supermercados</p>
+  </footer>
+
+  <script src="assets/js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
