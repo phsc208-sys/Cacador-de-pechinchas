@@ -11,25 +11,25 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("detalheContainer")) {
     montarDetalhes();
   }
-  
+
   if (document.getElementById("form-supermercado")) {
     configurarFormulario();
   }
-  
+
   // NOVO: Inicializa o formulário de importação de NF
   if (document.getElementById("form-importar-nf")) {
     document.getElementById("form-importar-nf").addEventListener("submit", handleImportarNF);
   }
 
   const btnAdicionar = document.getElementById("btn-adicionar");
-  if(btnAdicionar) {
+  if (btnAdicionar) {
     btnAdicionar.addEventListener("click", () => {
       window.location.href = "cadastro.html";
     });
   }
-  
+
   const btnInicio = document.getElementById("btn-inicio");
-  if(btnInicio) {
+  if (btnInicio) {
     btnInicio.addEventListener("click", () => {
       window.location.href = "index.html";
     });
@@ -38,14 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function montarDestaques() {
   const container = document.getElementById("destaquesContainer");
-  
+
   try {
     const response = await fetch(`${API_URL}?destaque=true`);
     if (!response.ok) throw new Error("Erro ao buscar destaques.");
-    
+
     const destaques = await response.json();
-    
-    container.innerHTML = ""; 
+
+    container.innerHTML = "";
     destaques.forEach((s, index) => {
       const active = index === 0 ? "active" : "";
       container.innerHTML += `
@@ -66,14 +66,14 @@ async function montarDestaques() {
 
 async function montarListaSupermercados() {
   const container = document.getElementById("supermercadosContainer");
-  
+
   try {
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error("Erro ao buscar supermercados.");
-    
+
     const supermercados = await response.json();
-    
-    container.innerHTML = ""; 
+
+    container.innerHTML = "";
     supermercados.forEach(s => {
       container.innerHTML += `
         <div class="col-md-4 mb-4">
@@ -107,9 +107,9 @@ async function montarDetalhes() {
   try {
     const response = await fetch(`${API_URL}/${id}`);
     if (!response.ok) throw new Error("Supermercado não encontrado.");
-    
+
     const s = await response.json();
-    
+
     container.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>${s.nome}</h2>
@@ -158,7 +158,7 @@ async function configurarFormulario() {
   if (id) {
     document.querySelector("header h1").textContent = "Editar Supermercado";
     document.querySelector("button[type='submit']").textContent = "Salvar Alterações";
-    
+
     try {
       const response = await fetch(`${API_URL}/${id}`);
       const data = await response.json();
@@ -169,7 +169,7 @@ async function configurarFormulario() {
       document.getElementById("sup-telefone").value = data.telefone;
       document.getElementById("sup-img").value = data.imagem;
       document.getElementById("sup-destaque").checked = data.destaque;
-      
+
       const idInput = document.createElement('input');
       idInput.type = "hidden";
       idInput.id = "sup-id";
@@ -206,7 +206,7 @@ function adicionarProdutoTemporario() {
 
   produtosTemporarios.push(produto);
   renderizarProdutosTemporarios();
-  
+
   document.getElementById("prod-nome").value = "";
   document.getElementById("prod-desc").value = "";
   document.getElementById("prod-preco").value = "";
@@ -217,12 +217,12 @@ function adicionarProdutoTemporario() {
 function renderizarProdutosTemporarios() {
   const container = document.getElementById("produtos-adicionados");
   container.innerHTML = "";
-  
-  if(produtosTemporarios.length === 0) {
+
+  if (produtosTemporarios.length === 0) {
     container.innerHTML = "<p>Nenhum produto adicionado.</p>";
     return;
   }
-  
+
   produtosTemporarios.forEach((prod, index) => {
     container.innerHTML += `
       <div class="card card-body mb-2">
@@ -233,13 +233,13 @@ function renderizarProdutosTemporarios() {
   });
 }
 
-window.removerProdutoTemporario = function(index) {
-  produtosTemporarios.splice(index, 1); 
-  renderizarProdutosTemporarios(); 
+window.removerProdutoTemporario = function (index) {
+  produtosTemporarios.splice(index, 1);
+  renderizarProdutosTemporarios();
 }
 
 async function handleCreate(event) {
-  event.preventDefault(); 
+  event.preventDefault();
 
   const supermercado = {
     nome: document.getElementById("sup-nome").value,
@@ -248,7 +248,7 @@ async function handleCreate(event) {
     telefone: document.getElementById("sup-telefone").value,
     imagem: document.getElementById("sup-img").value,
     destaque: document.getElementById("sup-destaque").checked,
-    produtos: produtosTemporarios 
+    produtos: produtosTemporarios
   };
 
   try {
@@ -263,8 +263,8 @@ async function handleCreate(event) {
     if (!response.ok) throw new Error("Erro ao cadastrar supermercado.");
 
     alert("Supermercado cadastrado com sucesso!");
-    produtosTemporarios = []; 
-    window.location.href = "index.html"; 
+    produtosTemporarios = [];
+    window.location.href = "index.html";
 
   } catch (error) {
     console.error(error);
@@ -273,9 +273,9 @@ async function handleCreate(event) {
 }
 
 async function handleUpdate(event) {
-  event.preventDefault(); 
+  event.preventDefault();
   const id = document.getElementById("sup-id").value;
-  
+
   const supermercado = {
     nome: document.getElementById("sup-nome").value,
     cidade: document.getElementById("sup-cidade").value,
@@ -283,9 +283,9 @@ async function handleUpdate(event) {
     telefone: document.getElementById("sup-telefone").value,
     imagem: document.getElementById("sup-img").value,
     destaque: document.getElementById("sup-destaque").checked,
-    produtos: produtosTemporarios 
+    produtos: produtosTemporarios
   };
-  
+
   try {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
@@ -298,8 +298,8 @@ async function handleUpdate(event) {
     if (!response.ok) throw new Error("Erro ao atualizar supermercado.");
 
     alert("Supermercado atualizado com sucesso!");
-    produtosTemporarios = []; 
-    window.location.href = `detalhe.html?id=${id}`; 
+    produtosTemporarios = [];
+    window.location.href = `detalhe.html?id=${id}`;
 
   } catch (error) {
     console.error(error);
@@ -316,12 +316,12 @@ async function handleExcluir(id) {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
     });
-    
+
     if (!response.ok) throw new Error("Erro ao excluir supermercado.");
-    
+
     alert("Supermercado excluído com sucesso!");
-    window.location.href = "index.html"; 
-    
+    window.location.href = "index.html";
+
   } catch (error) {
     console.error(error);
     alert(error.message);
@@ -331,34 +331,68 @@ async function handleExcluir(id) {
 // NOVO: Função para tratar o envio da URL da NF
 async function handleImportarNF(event) {
   event.preventDefault();
-  
+
   const nfURL = document.getElementById("nf-url").value;
-  
+  const messageArea = document.getElementById("message-area"); // NOVO: Elemento para mensagens
+  const btnSubmit = document.querySelector("#form-importar-nf button[type='submit']");
+
+  messageArea.textContent = ''; // Limpa mensagens anteriores
+
   if (!nfURL) {
-    alert("A URL da Nota Fiscal é obrigatória.");
+    messageArea.textContent = "A URL da Nota Fiscal é obrigatória.";
+    messageArea.style.color = 'red';
     return;
   }
 
-  // Define o endpoint do JSON-Server para a nova lista/recurso 'urlsNF'
-  const API_NF_URL = "http://localhost:3000/urlsNF"; 
+  // Novo: Salva a URL no db.json ANTES de chamar o script de automação
+  const API_NF_URL_DB = "http://localhost:3000/urlsNF";
+  const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf";
+
+  btnSubmit.disabled = true;
+  messageArea.textContent = 'Salvando URL e iniciando automação...';
+  messageArea.style.color = 'orange';
 
   try {
-    const response = await fetch(API_NF_URL, {
+    // 1. Primeiro, salva a URL no db.json via JSON-Server (porta 3000)
+    const dbResponse = await fetch(API_NF_URL_DB, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      // Envia a URL e um timestamp para garantir que ela será o último (mais recente) registro
       body: JSON.stringify({ url: nfURL, timestamp: new Date().toISOString() }),
     });
 
-    if (!response.ok) throw new Error("Erro ao salvar a URL da NF.");
+    if (!dbResponse.ok) throw new Error("Erro ao salvar a URL da NF no db.json.");
+    const dbData = await dbResponse.json();
+    const nfId = dbData.id;
 
-    alert("URL da Nota Fiscal salva com sucesso! Execute o script 'importarNF.js' no terminal para processar.");
-    window.location.href = "index.html"; 
+    // 2. Segundo, chama o servidor de automação (porta 3001) para executar o script
+    const automationResponse = await fetch(API_AUTOMAÇÃO_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      // Envia a URL recém-salva e o ID para o servidor de automação
+      body: JSON.stringify({ url: nfURL, id: nfId })
+    });
+
+    const automationData = await automationResponse.json();
+
+    if (automationResponse.ok && automationData.success) {
+      messageArea.textContent = `Sucesso: ${automationData.message}`;
+      messageArea.style.color = 'green';
+      document.getElementById("nf-url").value = ''; // Limpa o campo
+      // Você pode redirecionar aqui ou deixar o usuário ver a mensagem
+      // window.location.href = "index.html"; 
+    } else {
+      throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
+    }
 
   } catch (error) {
     console.error(error);
-    alert(error.message);
+    messageArea.textContent = `Falha na Importação: ${error.message}`;
+    messageArea.style.color = 'red';
+  } finally {
+    btnSubmit.disabled = false;
   }
 }
