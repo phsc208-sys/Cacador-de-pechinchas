@@ -1,25 +1,23 @@
-// importarNF.js (Modo: Ler URL do argumento da linha de comando e Salvar o HTML)
+// importarNF.js (Modo: Apenas baixar a URL e salvar o HTML)
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
 // --- Configuração ---
-const nomeFicheiroSaida = 'pagina_nf.html';
+const nomeFicheiroSaida = 'pagina_nf.html'; // Arquivo de saída
 
 // --- Função Principal ---
 async function salvarPaginaHTML() {
   // Pega a URL diretamente do argumento da linha de comando (process.argv[2])
-  // O process.argv[0] é 'node', process.argv[1] é 'importarNF.js'
   const nfURL = process.argv[2];
   
   if (!nfURL) {
+      // Se não houver URL, o erro deve ser emitido para o server.js
       console.error("ERRO: URL da Nota Fiscal não fornecida como argumento.");
-      process.exit(1); // Sai com código de erro
+      process.exit(1); 
   }
 
   try {
-    console.log(`Baixando dados da URL (Automação): ${nfURL}`);
-    
     // 1. Download do HTML
     const { data: html } = await axios.get(nfURL, {
       headers: {
@@ -32,17 +30,12 @@ async function salvarPaginaHTML() {
 
     fs.writeFileSync(caminhoCompleto, html, 'utf8');
     
-    console.log(`\nSucesso! O HTML da página foi salvo em:`);
-    console.log(caminhoCompleto);
+    // Sucesso deve ser impresso no console para o server.js capturar
+    console.log(`[Download] Arquivo salvo em ${caminhoCompleto}`);
     
   } catch (error) {
-    console.error("\n--- ERRO NO PROCESSO DE DOWNLOAD ---");
-    if (error.response) {
-      console.error(`Erro HTTP ${error.response.status} ao tentar acessar a NF: ${nfURL}`);
-    } else {
-      console.error("Erro ao baixar ou salvar a página:", error.message);
-    }
-    console.error("---------------------------------------");
+    // Erros devem ser passados para o server.js
+    console.error(`[Download] Falha ao baixar a NF: ${error.message}`);
     process.exit(1);
   }
 }

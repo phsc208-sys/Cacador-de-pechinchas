@@ -331,66 +331,52 @@ async function handleExcluir(id) {
 // NOVO: Função para tratar o envio da URL da NF
 async function handleImportarNF(event) {
   event.preventDefault();
-
+  
   const nfURL = document.getElementById("nf-url").value;
-  const messageArea = document.getElementById("message-area"); // NOVO: Elemento para mensagens
+  // Assumindo que você adicionou a área de mensagem e botão de submit no importar.html como sugerido.
+  const messageArea = document.getElementById("message-area") || { textContent: '' }; 
   const btnSubmit = document.querySelector("#form-importar-nf button[type='submit']");
-
-  messageArea.textContent = ''; // Limpa mensagens anteriores
-
+  
+  messageArea.textContent = ''; 
+  
   if (!nfURL) {
     messageArea.textContent = "A URL da Nota Fiscal é obrigatória.";
     messageArea.style.color = 'red';
     return;
   }
 
-  // Novo: Salva a URL no db.json ANTES de chamar o script de automação
-  const API_NF_URL_DB = "http://localhost:3000/urlsNF";
-  const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf";
+  const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf"; 
 
   btnSubmit.disabled = true;
-  messageArea.textContent = 'Salvando URL e iniciando automação...';
+  messageArea.textContent = 'Iniciando download e processamento da NF... Por favor, aguarde.';
   messageArea.style.color = 'orange';
 
   try {
-    // 1. Primeiro, salva a URL no db.json via JSON-Server (porta 3000)
-    const dbResponse = await fetch(API_NF_URL_DB, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ url: nfURL, timestamp: new Date().toISOString() }),
-    });
-
-    if (!dbResponse.ok) throw new Error("Erro ao salvar a URL da NF no db.json.");
-    const dbData = await dbResponse.json();
-    const nfId = dbData.id;
-
-    // 2. Segundo, chama o servidor de automação (porta 3001) para executar o script
+    // Chama o servidor de automação (porta 3001) para executar os scripts
     const automationResponse = await fetch(API_AUTOMAÇÃO_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      // Envia a URL recém-salva e o ID para o servidor de automação
-      body: JSON.stringify({ url: nfURL, id: nfId })
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        // Envia apenas a URL
+        body: JSON.stringify({ url: nfURL }) 
     });
 
     const automationData = await automationResponse.json();
 
     if (automationResponse.ok && automationData.success) {
-      messageArea.textContent = `Sucesso: ${automationData.message}`;
-      messageArea.style.color = 'green';
-      document.getElementById("nf-url").value = ''; // Limpa o campo
-      // Você pode redirecionar aqui ou deixar o usuário ver a mensagem
-      // window.location.href = "index.html"; 
+        messageArea.textContent = `Sucesso: ${automationData.message}`;
+        messageArea.style.color = 'green';
+        document.getElementById("nf-url").value = ''; // Limpa o campo
+        // Recarrega a lista de supermercados na página inicial após o sucesso
+        // window.location.href = "index.html";
     } else {
-      throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
+        throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
     }
 
   } catch (error) {
     console.error(error);
-    messageArea.textContent = `Falha na Importação: ${error.message}`;
+    messageArea.textContent = `Falha na Importação: ${error.message}. Verifique o console do servidor (porta 3001) para detalhes.`;
     messageArea.style.color = 'red';
   } finally {
     btnSubmit.disabled = false;
