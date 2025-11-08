@@ -1,4 +1,4 @@
-// importarNF.js (Modo: Ler a ÚLTIMA URL de uma lista no db.json)
+// importarNF.js (Modo: Ler a ÚLTIMA URL de uma lista de objetos no db.json)
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -21,16 +21,17 @@ async function salvarPaginaHTML() {
       // 3. Converter o JSON para um objeto JavaScript
       const db = JSON.parse(dbConteudo);
       
-      // 4. NOVO: Pegar a lista de URLs
-      const listaUrls = db.lista_urls_nf;
+      // 4. Pegar a lista de URLs da nova chave "urlsNF" (lista de objetos)
+      const listaUrlsObj = db.urlsNF;
 
-      // 5. NOVO: Validar a lista e pegar a última URL
-      if (!listaUrls || !Array.isArray(listaUrls) || listaUrls.length === 0) {
-        throw new Error("A chave 'lista_urls_nf' não foi encontrada, não é uma lista ou está vazia no db.json.");
+      // 5. Validar a lista e pegar a última URL (objeto mais recente)
+      if (!listaUrlsObj || !Array.isArray(listaUrlsObj) || listaUrlsObj.length === 0) {
+        throw new Error("A lista 'urlsNF' está vazia no db.json. Salve uma URL usando a página 'Importar NF' (com o JSON-Server rodando).");
       }
       
-      // 6. NOVO: Pegar o último item da lista
-      nfURL = listaUrls[listaUrls.length - 1];
+      // 6. Pegar o último item (o mais recente) da lista e extrair a propriedade 'url'
+      const ultimoItem = listaUrlsObj[listaUrlsObj.length - 1];
+      nfURL = ultimoItem.url; // Pega o valor da propriedade 'url'
 
       if (!nfURL) {
         throw new Error("A última URL na lista está vazia ou é inválida.");

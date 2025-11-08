@@ -16,6 +16,11 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarFormulario();
   }
   
+  // NOVO: Inicializa o formulário de importação de NF
+  if (document.getElementById("form-importar-nf")) {
+    document.getElementById("form-importar-nf").addEventListener("submit", handleImportarNF);
+  }
+
   const btnAdicionar = document.getElementById("btn-adicionar");
   if(btnAdicionar) {
     btnAdicionar.addEventListener("click", () => {
@@ -317,6 +322,41 @@ async function handleExcluir(id) {
     alert("Supermercado excluído com sucesso!");
     window.location.href = "index.html"; 
     
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+}
+
+// NOVO: Função para tratar o envio da URL da NF
+async function handleImportarNF(event) {
+  event.preventDefault();
+  
+  const nfURL = document.getElementById("nf-url").value;
+  
+  if (!nfURL) {
+    alert("A URL da Nota Fiscal é obrigatória.");
+    return;
+  }
+
+  // Define o endpoint do JSON-Server para a nova lista/recurso 'urlsNF'
+  const API_NF_URL = "http://localhost:3000/urlsNF"; 
+
+  try {
+    const response = await fetch(API_NF_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // Envia a URL e um timestamp para garantir que ela será o último (mais recente) registro
+      body: JSON.stringify({ url: nfURL, timestamp: new Date().toISOString() }),
+    });
+
+    if (!response.ok) throw new Error("Erro ao salvar a URL da NF.");
+
+    alert("URL da Nota Fiscal salva com sucesso! Execute o script 'importarNF.js' no terminal para processar.");
+    window.location.href = "index.html"; 
+
   } catch (error) {
     console.error(error);
     alert(error.message);
