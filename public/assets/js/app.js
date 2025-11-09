@@ -1,4 +1,5 @@
 const API_URL = "http://localhost:3000/supermercados";
+const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf";
 
 let produtosTemporarios = [];
 
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarFormulario();
   }
 
-  // NOVO: Inicializa o formulário de importação de NF
+  // Inicializa o formulário de importação de NF
   if (document.getElementById("form-importar-nf")) {
     document.getElementById("form-importar-nf").addEventListener("submit", handleImportarNF);
   }
@@ -121,6 +122,7 @@ async function montarDetalhes() {
       <p><strong>Cidade:</strong> ${s.cidade}</p>
       <p><strong>Endereço:</strong> ${s.endereco}</p>
       <p><strong>Telefone:</strong> ${s.telefone}</p>
+      ${s.cnpj ? `<p><strong>CNPJ:</strong> ${s.cnpj}</p>` : ''}
       <img src="${s.imagem}" alt="${s.nome}" class="img-fluid mb-4">
       <h3>Produtos</h3>
       <div class="row">
@@ -130,8 +132,15 @@ async function montarDetalhes() {
               <img src="${p.imagem}" class="card-img-top" alt="${p.nome}">
               <div class="card-body">
                 <h5 class="card-title">${p.nome}</h5>
-                <p class="card-text">${p.descricao}</p>
-                <p><strong>Preço:</strong> ${p.preco}</p>
+                
+                <!-- Campos manuais (existentes) -->
+                ${p.descricao ? `<p class="card-text">${p.descricao}</p>` : ''}
+                
+                <!-- NOVOS CAMPOS DE NF -->
+                ${p.preco_unidade ? `<p><strong>Preço da Unidade:</strong> ${p.preco_unidade}</p>` : ''}
+                ${p.data_nota_fiscal ? `<p><strong>Data da Compra:</strong> ${p.data_nota_fiscal}</p>` : ''}
+                <!-- FIM NOVOS CAMPOS DE NF -->
+                
                 <p><strong>Marca:</strong> ${p.marca}</p>
               </div>
             </div>
@@ -175,8 +184,21 @@ async function configurarFormulario() {
       idInput.id = "sup-id";
       idInput.value = id;
       form.prepend(idInput);
+      
+      // Adiciona o CNPJ para ser enviado caso esteja sendo editado
+      if (data.cnpj) {
+          const cnpjInput = document.createElement('input');
+          cnpjInput.type = "hidden";
+          cnpjInput.id = "sup-cnpj";
+          cnpjInput.value = data.cnpj;
+          form.prepend(cnpjInput);
+      }
 
-      produtosTemporarios = data.produtos || [];
+
+      // Filtra produtos para edição: Ignora os produtos importados (que têm data_nota_fiscal)
+      // para evitar tentar editá-los no formulário manual.
+      produtosTemporarios = (data.produtos || []).filter(p => !p.data_nota_fiscal);
+      
       renderizarProdutosTemporarios();
 
       form.addEventListener("submit", handleUpdate);
@@ -199,6 +221,7 @@ function adicionarProdutoTemporario() {
     imagem: document.getElementById("prod-img").value,
   };
 
+  // OBS: O campo 'preco' é o campo antigo. Para NF, usamos preco_unidade.
   if (!produto.nome || !produto.preco) {
     alert("Nome e Preço do produto são obrigatórios.");
     return;
@@ -224,9 +247,12 @@ function renderizarProdutosTemporarios() {
   }
 
   produtosTemporarios.forEach((prod, index) => {
+    // Exibe o campo 'preco' (usado para produtos inseridos manualmente)
+    const precoDisplay = prod.preco || prod.preco_unidade || 'N/A'; 
+    
     container.innerHTML += `
       <div class="card card-body mb-2">
-        <strong>${prod.nome}</strong> - ${prod.preco}
+        <strong>${prod.nome}</strong> - ${precoDisplay}
         <button type"button" class="btn btn-sm btn-danger mt-1" onclick="removerProdutoTemporario(${index})">Remover</button>
       </div>
     `;
@@ -248,6 +274,7 @@ async function handleCreate(event) {
     telefone: document.getElementById("sup-telefone").value,
     imagem: document.getElementById("sup-img").value,
     destaque: document.getElementById("sup-destaque").checked,
+    // Note: CNPJ não é capturado no formulário de criação, será adicionado pelo scraper
     produtos: produtosTemporarios
   };
 
@@ -276,17 +303,29 @@ async function handleUpdate(event) {
   event.preventDefault();
   const id = document.getElementById("sup-id").value;
 
-  const supermercado = {
-    nome: document.getElementById("sup-nome").value,
-    cidade: document.getElementById("sup-cidade").value,
-    endereco: document.getElementById("sup-endereco").value,
-    telefone: document.getElementById("sup-telefone").value,
-    imagem: document.getElementById("sup-img").value,
-    destaque: document.getElementById("sup-destaque").checked,
-    produtos: produtosTemporarios
-  };
-
+  // Recarrega os dados existentes para não perder produtos da NF que não estão em produtosTemporarios
   try {
+    const existingResponse = await fetch(`${API_URL}/${id}`);
+    const existingData = await existingResponse.json();
+    
+    // Filtra produtos antigos: mantém apenas os produtos da NF (que têm data_nota_fiscal)
+    const produtosImportados = (existingData.produtos || []).filter(p => p.data_nota_fiscal);
+    
+    // Combina os produtos: produtos importados + produtos editados manualmente
+    const produtosCompletos = produtosImportados.concat(produtosTemporarios);
+
+    const supermercado = {
+        nome: document.getElementById("sup-nome").value,
+        cidade: document.getElementById("sup-cidade").value,
+        endereco: document.getElementById("sup-endereco").value,
+        telefone: document.getElementById("sup-telefone").value,
+        imagem: document.getElementById("sup-img").value,
+        destaque: document.getElementById("sup-destaque").checked,
+        // Adiciona CNPJ se existir (foi incluído como hidden input se já existia)
+        cnpj: document.getElementById("sup-cnpj") ? document.getElementById("sup-cnpj").value : existingData.cnpj,
+        produtos: produtosCompletos
+    };
+  
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
       headers: {
@@ -299,7 +338,7 @@ async function handleUpdate(event) {
 
     alert("Supermercado atualizado com sucesso!");
     produtosTemporarios = [];
-    window.location.href = `detalhe.html?id=${id}`;
+    window.location.href = `detalhe.html?id=${id}`; 
 
   } catch (error) {
     console.error(error);
@@ -328,13 +367,13 @@ async function handleExcluir(id) {
   }
 }
 
-// NOVO: Função para tratar o envio da URL da NF
+// Função para tratar o envio da URL da NF (Chama o servidor de automação)
 async function handleImportarNF(event) {
   event.preventDefault();
   
   const nfURL = document.getElementById("nf-url").value;
-  // Assumindo que você adicionou a área de mensagem e botão de submit no importar.html como sugerido.
-  const messageArea = document.getElementById("message-area") || { textContent: '' }; 
+  // Elementos de feedback no importar.html
+  const messageArea = document.getElementById("message-area") || { textContent: '', style: {} }; 
   const btnSubmit = document.querySelector("#form-importar-nf button[type='submit']");
   
   messageArea.textContent = ''; 
@@ -345,6 +384,8 @@ async function handleImportarNF(event) {
     return;
   }
 
+  // URL do servidor de automação
+  // Nota: Não é mais necessário salvar a URL no db.json, o server.js passa como argumento
   const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf"; 
 
   btnSubmit.disabled = true;
@@ -352,7 +393,7 @@ async function handleImportarNF(event) {
   messageArea.style.color = 'orange';
 
   try {
-    // Chama o servidor de automação (porta 3001) para executar os scripts
+    // 1. Chama o servidor de automação (porta 3001) para executar os scripts
     const automationResponse = await fetch(API_AUTOMAÇÃO_URL, {
         method: 'POST',
         headers: {
@@ -368,8 +409,6 @@ async function handleImportarNF(event) {
         messageArea.textContent = `Sucesso: ${automationData.message}`;
         messageArea.style.color = 'green';
         document.getElementById("nf-url").value = ''; // Limpa o campo
-        // Recarrega a lista de supermercados na página inicial após o sucesso
-        // window.location.href = "index.html";
     } else {
         throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
     }

@@ -1,7 +1,7 @@
-// processarNF.js (Responsável por ler o HTML local, extrair dados e atualizar o db.json)
+// processarNF.js (Organização dos dados com CNPJ, Datas e CÁLCULO DE PREÇO UNITÁRIO)
 const fs = require('fs');
 const path = require('path');
-const cheerio = require('cheerio'); // Necessário para a raspagem (scraping)
+const cheerio = require('cheerio'); 
 
 // --- Configuração de Caminhos ---
 const DB_PATH = path.join(__dirname, 'db', 'db.json');
@@ -17,21 +17,27 @@ function extrairDadosNF(html) {
     
     // --- Extrair Dados do Supermercado ---
     const nomeSupermercadoRaw = $('th.text-center.text-uppercase h4 b').text().trim();
-    // Normalização: Remove 'COMERCIO DE ALIMENTOS S/A' ou 'LTDA' para obter um nome curto
     const nomeSupermercado = nomeSupermercadoRaw.split('COMERCIO')[0].split('LTDA')[0].trim(); 
     
-    // CNPJ e Inscrição Estadual (Ex: CNPJ: 04641376011413 -, Inscrição Estadual: 0020488291119)
+    // CNPJ
     const infoSupermercado = $('table.table tbody tr:nth-child(1) td').text().trim();
     const cnpjMatch = infoSupermercado.match(/CNPJ:\s*(\d+)/);
-    const cnpj = cnpjMatch ? cnpjMatch[1] : null;
+    const cnpj = cnpjMatch ? cnpjMatch[1].replace(/[\.-]/g, '').trim() : null; 
 
-    // Endereço (Ex: AV. DOS ANDRADAS, 302, CENTRO, 3106200 - BELO HORIZONTE, MG)
+    // Endereço
     const enderecoCompleto = $('table.table tbody tr:nth-child(2) td').text().trim();
     const partes = enderecoCompleto.split(', ');
-    const ufCidade = partes.pop(); // MG
-    const cepCidade = partes.pop(); // 3106200 - BELO HORIZONTE
-    const cidade = cepCidade ? cepCidade.split(' - ')[1] : null; // BELO HORIZONTE
-    const endereco = partes.join(', ').trim(); // AV. DOS ANDRADAS, 302, CENTRO
+    const ufCidade = partes.pop(); 
+    const cepCidade = partes.pop(); 
+    const cidade = cepCidade ? cepCidade.split(' - ')[1] : null; 
+    const endereco = partes.join(', ').trim(); 
+    
+    // Data de Emissão da NF
+    const dataEmissaoRaw = $('#collapse4 table.table-hover').eq(2).find('tbody tr td:nth-child(4)').text().trim();
+    const dataEmissaoNF = dataEmissaoRaw.split(' ')[0] || 'N/A'; 
+    
+    // Data atual para auditoria de processamento
+    const dataProcessamento = new Date().toLocaleDateString('pt-BR'); 
 
     // --- Extrair Produtos ---
     const produtos = [];
@@ -39,21 +45,44 @@ function extrairDadosNF(html) {
         const nomeQtde = $(row).find('td:nth-child(1) h7').text().trim();
         const nome = nomeQtde.replace(/\(Código: \d+\)/, '').trim();
 
+        // 1. EXTRAI QUANTIDADE (Qtd: 1.000 ou 0.342)
         const qtdeTotalRaw = $(row).find('td:nth-child(2)').text().trim();
         const qtdeMatch = qtdeTotalRaw.match(/Qtde total de ítens: ([\d.,]+)/);
-        const quantidade = qtdeMatch ? qtdeMatch[1].replace(',', '.') : '1.000'; 
+        const quantidadeString = qtdeMatch ? qtdeMatch[1] : '1.000'; 
+        
+        // 2. EXTRAI PREÇO TOTAL (Valor total R$: R$ 3,79)
+        const precoTotalRaw = $(row).find('td:nth-child(4)').text().trim();
+        const precoMatch = precoTotalRaw.match(/(R\$\s*[\d.,]+)/);
+        const precoTotal = precoMatch ? precoMatch[1] : null;
+        
+        if (nome && precoTotal) {
+            // --- CÁLCULO DO PREÇO POR UNIDADE ---
+            
+            // Normaliza a Quantidade 
+            const quantidadeFloat = parseFloat(quantidadeString.replace(',', '.')); 
+            
+            // Normaliza o Preço Total 
+            const precoTotalFloat = parseFloat(
+                precoTotal.replace('R$', '').replace(/\s/g, '').replace('.', '').replace(',', '.')
+            );
+            
+            let precoUnidadeCalculado = precoTotalFloat / quantidadeFloat;
+            
+            // Formata o Preço Unitário de volta para string R$ X,XX
+            let precoUnidadeFormatado = `R$ ${precoUnidadeCalculado.toFixed(2).replace('.', ',')}`;
 
-        const precoRaw = $(row).find('td:nth-child(4)').text().trim();
-        const precoMatch = precoRaw.match(/(R\$\s*[\d.,]+)/);
-        const preco = precoMatch ? precoMatch[1] : null;
+            // ------------------------------------
 
-        if (nome && preco) {
             produtos.push({
                 nome: nome,
-                descricao: `(NF) ${quantidade} UN. Importado em ${new Date().toLocaleDateString('pt-BR')}`,
-                preco: preco,
+                data_nota_fiscal: dataEmissaoNF, 
+                // Valor por unidade (será o preço visível)
+                preco_unidade: precoUnidadeFormatado, 
+                // **CAMPO REMOVIDO**: preco_total_nf (valor total da linha)
+                quantidade: quantidadeString,
+                data_processamento: dataProcessamento, 
                 marca: nomeSupermercado, 
-                imagem: "assets/img/produtos/generico.jpg" // Imagem genérica
+                imagem: "assets/img/produtos/generico.jpg" 
             });
         }
     });
@@ -61,7 +90,7 @@ function extrairDadosNF(html) {
     return {
         supermercado: {
             nome: nomeSupermercado,
-            cnpj: cnpj,
+            cnpj: cnpj, 
             cidade: cidade || 'N/A',
             endereco: endereco || 'N/A',
             telefone: 'N/A', 
@@ -73,7 +102,7 @@ function extrairDadosNF(html) {
 }
 
 /**
- * Atualiza o db.json com os dados extraídos, adicionando o supermercado se não existir.
+ * Atualiza o db.json usando o CNPJ como identificador do Supermercado.
  */
 function atualizarDbJson(dadosExtraidos) {
     // 1. Ler o arquivo db.json
@@ -83,33 +112,51 @@ function atualizarDbJson(dadosExtraidos) {
     const novoSupermercado = dadosExtraidos.supermercado;
     const novosProdutos = dadosExtraidos.produtos;
     
-    // 2. Tentar encontrar o supermercado existente pelo nome
+    // --- Tentar encontrar o supermercado pelo CNPJ ---
     let supermercadoExistente = db.supermercados.find(s => 
-        s.nome.toLowerCase() === novoSupermercado.nome.toLowerCase()
+        s.cnpj === novoSupermercado.cnpj
     );
 
-    // 3. Se não encontrar, adiciona um novo supermercado
+    // Fallback: Se a busca por CNPJ falhar, tentamos a busca por nome
     if (!supermercadoExistente) {
-        // Gera um ID simples e adiciona
+        supermercadoExistente = db.supermercados.find(s => 
+            s.nome.toLowerCase() === novoSupermercado.nome.toLowerCase()
+        );
+    }
+    // --- FIM DA BUSCA ---
+
+    // 3. Se não encontrar (novo estabelecimento)
+    if (!supermercadoExistente) {
         const newId = Math.random().toString(36).substring(2, 6);
         novoSupermercado.id = newId;
+        novoSupermercado.produtos = []; 
 
         db.supermercados.push(novoSupermercado);
         supermercadoExistente = novoSupermercado;
-        console.log(`\n[Processamento] Adicionado novo supermercado: ${supermercadoExistente.nome}`);
+        console.log(`\n[Processamento] Adicionado novo supermercado (ID: ${newId}): ${supermercadoExistente.nome}`);
     } else {
-        // Atualiza as informações básicas do supermercado se ele existir
+        // 4. Se encontrar, atualiza CNPJ (se estiver faltando) e Endereço
+        if (!supermercadoExistente.cnpj && novoSupermercado.cnpj) {
+             supermercadoExistente.cnpj = novoSupermercado.cnpj;
+        }
         supermercadoExistente.cidade = novoSupermercado.cidade;
         supermercadoExistente.endereco = novoSupermercado.endereco;
-        console.log(`\n[Processamento] Supermercado encontrado: ${supermercadoExistente.nome}`);
+        console.log(`\n[Processamento] Supermercado encontrado (CNPJ: ${supermercadoExistente.cnpj}): ${supermercadoExistente.nome}`);
     }
 
-    // 4. Adicionar os novos produtos (evitar duplicatas exatas)
+    // 5. Adicionar os novos produtos
     let produtosAdicionadosCount = 0;
+    if (!supermercadoExistente.produtos || !Array.isArray(supermercadoExistente.produtos)) {
+        supermercadoExistente.produtos = [];
+    }
+
     novosProdutos.forEach(novoProd => {
-        // Critério de duplicidade: Nome E Preço são iguais
+        // Critério de duplicidade: Nome, Preço UNITÁRIO E Data da Nota Fiscal são iguais
         const isDuplicate = supermercadoExistente.produtos.some(
-            existingProd => existingProd.nome === novoProd.nome && existingProd.preco === novoProd.preco
+            existingProd => 
+                existingProd.nome === novoProd.nome && 
+                existingProd.preco_unidade === novoProd.preco_unidade && 
+                existingProd.data_nota_fiscal === novoProd.data_nota_fiscal
         );
 
         if (!isDuplicate) {
@@ -120,7 +167,7 @@ function atualizarDbJson(dadosExtraidos) {
 
     console.log(`[Processamento] ${produtosAdicionadosCount} novos produtos adicionados ao ${supermercadoExistente.nome}.`);
 
-    // 5. Salvar o arquivo db.json
+    // 6. Salvar o arquivo db.json
     fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf8');
     console.log(`[Processamento] Sucesso! O arquivo db.json foi atualizado.`);
 }
@@ -128,18 +175,13 @@ function atualizarDbJson(dadosExtraidos) {
 
 // --- Lógica Principal de Execução ---
 try {
-    // 1. Verifica se o arquivo HTML existe
     if (!fs.existsSync(NF_HTML_PATH)) {
         throw new Error(`ERRO: Arquivo HTML da NF não encontrado em: ${NF_HTML_PATH}`);
     }
     
-    // 2. Lê o conteúdo do arquivo HTML
     const htmlContent = fs.readFileSync(NF_HTML_PATH, 'utf8');
-    
-    // 3. Extrai os dados
     const dados = extrairDadosNF(htmlContent);
     
-    // 4. Atualiza o db.json
     atualizarDbJson(dados); 
     
 } catch (error) {
