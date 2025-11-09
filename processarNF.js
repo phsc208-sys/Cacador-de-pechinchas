@@ -129,7 +129,7 @@ function extrairDadosNF(html) {
     const endereco = partes.join(', ').trim(); 
     
     // Data de Emissão da NF
-    const dataEmissaoRaw = $('#collapse4 table.table-hover').eq(2).find('tbody tr td:nth-child(4)').text().trim();
+    const dataEmissaoRaw = $('#collapse4 table.table-hover').eq(2).find('tbody tr td:nth-Gchild(4)').text().trim();
     const dataEmissaoNF = dataEmissaoRaw.split(' ')[0] || 'N/A'; 
     
     // Data atual para auditoria de processamento
@@ -149,7 +149,9 @@ function extrairDadosNF(html) {
         // 2. EXTRAI PREÇO TOTAL (Valor total R$: R$ 3,79)
         const precoTotalRaw = $(row).find('td:nth-child(4)').text().trim();
         const precoMatch = precoTotalRaw.match(/(R\$\s*[\d.,]+)/);
-        const precoTotal = precoMatch ? precoTotal[1] : null;
+        
+        // --- CORREÇÃO APLICADA AQUI ---
+        const precoTotal = precoMatch ? precoMatch[1] : null;
         
         if (nome && precoTotal) {
             // --- CÁLCULO DO PREÇO POR UNIDADE ---
