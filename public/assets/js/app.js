@@ -129,18 +129,19 @@ async function montarDetalhes() {
         ${s.produtos.map(p => `
           <div class="col-md-4 mb-3">
             <div class="card h-100">
-              <img src="${p.imagem}" class="card-img-top" alt="${p.nome}">
+              <img src="${p.imagem}" class="card-img-top" alt="${p.nome_decifrado || p.nome}">
               <div class="card-body">
-                <h5 class="card-title">${p.nome}</h5>
+                <h5 class="card-title">${p.nome_decifrado || p.nome}</h5>
                 
-                <!-- Campos manuais (existentes) -->
-                ${p.descricao ? `<p class="card-text">${p.descricao}</p>` : ''}
+                ${p.categoria_principal ? `<p class="badge bg-secondary">Categoria: ${p.categoria_principal}</p>` : ''}
+                ${p.subcategoria ? `<p class="badge bg-info ms-2">Subcategoria: ${p.subcategoria}</p>` : ''}
                 
-                <!-- NOVOS CAMPOS DE NF -->
-                ${p.preco_unidade ? `<p><strong>Preço da Unidade:</strong> ${p.preco_unidade}</p>` : ''}
-                ${p.data_nota_fiscal ? `<p><strong>Data da Compra:</strong> ${p.data_nota_fiscal}</p>` : ''}
-                <!-- FIM NOVOS CAMPOS DE NF -->
+                ${p.nome_decifrado && p.nome !== p.nome_decifrado ? `<p class="text-muted small mt-2">Original: ${p.nome}</p>` : ''}
                 
+                ${p.preco_unidade ? `<p><strong>Preço/Unidade:</strong> ${p.preco_unidade}</p>` : (p.preco ? `<p><strong>Preço:</strong> ${p.preco}</p>` : '')}
+                
+                ${p.data_nota_fiscal ? `<p><strong>Data da Compra:</strong> ${p.data_nota_fiscal}</p>` : (p.data_cadastro ? `<p><strong>Data de Cadastro:</strong> ${p.data_cadastro}</p>` : '')}
+                ${p.quantidade ? `<p><strong>Qtd. na NF:</strong> ${p.quantidade}</p>` : ''}
                 <p><strong>Marca:</strong> ${p.marca}</p>
               </div>
             </div>
@@ -196,7 +197,6 @@ async function configurarFormulario() {
 
 
       // Filtra produtos para edição: Ignora os produtos importados (que têm data_nota_fiscal)
-      // para evitar tentar editá-los no formulário manual.
       produtosTemporarios = (data.produtos || []).filter(p => !p.data_nota_fiscal);
       
       renderizarProdutosTemporarios();
@@ -212,24 +212,52 @@ async function configurarFormulario() {
   }
 }
 
+// MUDANÇA AQUI: Adiciona preco_unidade (manual) e data de cadastro
 function adicionarProdutoTemporario() {
+  
+  // Captura o preço e garante a formatação R$ X,XX
+  const precoRaw = document.getElementById("prod-preco").value.trim();
+  const precoNumerico = parseFloat(precoRaw.replace('R$', '').replace('.', '').replace(',', '.'));
+  
+  if (isNaN(precoNumerico)) {
+    alert("O Preço deve ser um valor numérico válido.");
+    return;
+  }
+  
+  // Converte para o formato de string R$ X,XX
+  const precoFormatado = `R$ ${precoNumerico.toFixed(2).replace('.', ',')}`;
+  
+  // Data de registro para diferenciar
+  const dataHoje = new Date().toLocaleDateString('pt-BR');
+  
+
   const produto = {
     nome: document.getElementById("prod-nome").value,
-    descricao: document.getElementById("prod-desc").value,
-    preco: document.getElementById("prod-preco").value,
+    // Armazena a descrição no campo original, se fornecida
+    descricao: document.getElementById("prod-desc").value, 
+    // ALTERADO: Usa o campo preco_unidade para consistência de exibição
+    preco_unidade: precoFormatado, 
+    // Data de cadastro manual, para não ser confundido com a data da NF
+    data_cadastro: dataHoje, 
     marca: document.getElementById("prod-marca").value,
     imagem: document.getElementById("prod-img").value,
+    // Garante que campos de IA e NF não existam, marcando como manual
+    categoria_principal: 'Manual',
+    subcategoria: 'N/A'
   };
 
-  // OBS: O campo 'preco' é o campo antigo. Para NF, usamos preco_unidade.
-  if (!produto.nome || !produto.preco) {
+  if (!produto.nome || !precoRaw) {
     alert("Nome e Preço do produto são obrigatórios.");
     return;
   }
 
+  // Remove o campo preco antigo que não é mais necessário
+  delete produto.preco; 
+  
   produtosTemporarios.push(produto);
   renderizarProdutosTemporarios();
 
+  // Limpa campos
   document.getElementById("prod-nome").value = "";
   document.getElementById("prod-desc").value = "";
   document.getElementById("prod-preco").value = "";
@@ -247,8 +275,8 @@ function renderizarProdutosTemporarios() {
   }
 
   produtosTemporarios.forEach((prod, index) => {
-    // Exibe o campo 'preco' (usado para produtos inseridos manualmente)
-    const precoDisplay = prod.preco || prod.preco_unidade || 'N/A'; 
+    // Tenta usar o novo campo (preferencial), senão usa o campo antigo 'preco'
+    const precoDisplay = prod.preco_unidade || prod.preco || 'N/A'; 
     
     container.innerHTML += `
       <div class="card card-body mb-2">
@@ -264,6 +292,7 @@ window.removerProdutoTemporario = function (index) {
   renderizarProdutosTemporarios();
 }
 
+// MUDANÇA AQUI: handleCreate usa o array produtosTemporarios (que agora usa preco_unidade)
 async function handleCreate(event) {
   event.preventDefault();
 
@@ -299,11 +328,12 @@ async function handleCreate(event) {
   }
 }
 
+// MUDANÇA AQUI: handleUpdate usa a concatenação de produtos importados e manuais
 async function handleUpdate(event) {
   event.preventDefault();
   const id = document.getElementById("sup-id").value;
 
-  // Recarrega os dados existentes para não perder produtos da NF que não estão em produtosTemporarios
+  // Recarrega os dados existentes para não perder produtos da NF
   try {
     const existingResponse = await fetch(`${API_URL}/${id}`);
     const existingData = await existingResponse.json();
@@ -385,11 +415,10 @@ async function handleImportarNF(event) {
   }
 
   // URL do servidor de automação
-  // Nota: Não é mais necessário salvar a URL no db.json, o server.js passa como argumento
   const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf"; 
 
   btnSubmit.disabled = true;
-  messageArea.textContent = 'Iniciando download e processamento da NF... Por favor, aguarde.';
+  messageArea.textContent = 'Iniciando download e processamento da NF (incluindo IA)... Por favor, aguarde.';
   messageArea.style.color = 'orange';
 
   try {
@@ -406,9 +435,12 @@ async function handleImportarNF(event) {
     const automationData = await automationResponse.json();
 
     if (automationResponse.ok && automationData.success) {
+        // Redireciona para o início ou mostra sucesso
         messageArea.textContent = `Sucesso: ${automationData.message}`;
         messageArea.style.color = 'green';
         document.getElementById("nf-url").value = ''; // Limpa o campo
+        // Redirecionamos para a página inicial para carregar os novos dados
+        window.location.href = "index.html"; 
     } else {
         throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
     }
