@@ -1,3 +1,12 @@
 {
-
+  "LTE L V CAM INT 1L": {
+    "nome_decifrado": "Leite Longa Vida Integral Camponesa 1 Litro",
+    "categoria_principal": "Alimentos",
+    "subcategoria": "Laticínios"
+  },
+  "IOG ITAM PED COC 450": {
+    "nome_decifrado": "Iogurte Itambé Pedaços de Coco 450g",
+    "categoria_principal": "Alimentos",
+    "subcategoria": "Iogurtes"
+  }
 }

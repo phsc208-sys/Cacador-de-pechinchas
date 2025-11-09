@@ -7,7 +7,9 @@ const cheerio = require('cheerio');
 const DB_PATH = path.join(__dirname, 'db', 'db.json');
 const NF_HTML_PATH = path.join(__dirname, 'pagina_nf.html');
 // --- Caminho para o nosso dicionário ---
-const CATEGORIAS_MAP_PATH = path.join(__dirname, 'db', 'definção_map.json');
+
+// !! CORREÇÃO APLICADA AQUI !! (Era 'definção_map.json')
+const CATEGORIAS_MAP_PATH = path.join(__dirname, 'db', 'definição_map.json');
 
 // --- Configuração da IA (usada como fallback) ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
@@ -271,10 +273,11 @@ async function main() {
         // 1. Carregar o dicionário manual (vamos usar 'categoriasMap' como a fonte da verdade)
         let categoriasMap = {};
         if (fs.existsSync(CATEGORIAS_MAP_PATH)) {
+            // AGORA LENDO O ARQUIVO CORRETO
             categoriasMap = JSON.parse(fs.readFileSync(CATEGORIAS_MAP_PATH, 'utf8'));
         } else {
+            // Se o arquivo correto (com 'i') não existir, ele cria.
             console.warn(`[Processamento] Arquivo '${CATEGORIAS_MAP_PATH}' não encontrado. Criando um novo...`);
-            // Cria o arquivo se ele não existir, para salvar dados da IA
             fs.writeFileSync(CATEGORIAS_MAP_PATH, JSON.stringify({}, null, 2), 'utf8');
         }
 
@@ -313,10 +316,11 @@ async function main() {
                 // Salva o arquivo de definição (definção_map.json) atualizado
                 if (novasDefinicoes > 0) {
                     try {
-                        fs.writeFileSync(CATEGORias_MAP_PATH, JSON.stringify(categoriasMap, null, 2), 'utf8');
-                        console.log(`[Processamento] 'definção_map.json' foi atualizado com ${novasDefinicoes} novas definições.`);
+                        // AGORA SALVANDO NO ARQUIVO CORRETO
+                        fs.writeFileSync(CATEGORIAS_MAP_PATH, JSON.stringify(categoriasMap, null, 2), 'utf8');
+                        console.log(`[Processamento] '${CATEGORIAS_MAP_PATH}' foi atualizado com ${novasDefinicoes} novas definições.`);
                     } catch (writeError) {
-                        console.error(`[Processamento] ERRO ao salvar 'definção_map.json': ${writeError.message}`);
+                        console.error(`[Processamento] ERRO ao salvar '${CATEGORIAS_MAP_PATH}': ${writeError.message}`);
                     }
                 }
                 // --- FIM DA NOVA LÓGICA ---
