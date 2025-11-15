@@ -128,25 +128,21 @@ async function montarDetalhes() {
       <div class="row">
         ${s.produtos.map(p => `
           <div class="col-md-4 mb-3">
-            <div class="card h-100">
-              <img src="${p.imagem}" class="card-img-top" alt="${p.nome_decifrado || p.nome}">
-              <div class="card-body">
-                <h5 class="card-title">${p.nome_decifrado || p.nome}</h5>
+<h5 class="card-title">${p.nome_decifrado || p.nome}</h5>
                 
-                ${p.categoria_principal ? `<p class="badge bg-secondary">Categoria: ${p.categoria_principal}</p>` : ''}
-                ${p.subcategoria ? `<p class="badge bg-info ms-2">Subcategoria: ${p.subcategoria}</p>` : ''}
-                ${p.pdm ? `<p class="badge bg-success mb-1 ms-1">PDM: ${p.pdm}</p>` : ''}
-                
-                ${p.nome_decifrado && p.nome !== p.nome_decifrado ? `<p class="text-muted small mt-2">Original: ${p.nome}</p>` : ''}
-                
-                ${p.preco_unidade ? `<p><strong>Preço/Unidade:</strong> ${p.preco_unidade}</p>` : (p.preco ? `<p><strong>Preço:</strong> ${p.preco}</p>` : '')}
-                
-                ${p.data_nota_fiscal ? `<p><strong>Data da Compra:</strong> ${p.data_nota_fiscal}</p>` : (p.data_cadastro ? `<p><strong>Data de Cadastro:</strong> ${p.data_cadastro}</p>` : '')}
-                ${p.quantidade ? `<p><strong>Qtd. na NF:</strong> ${p.quantidade}</p>` : ''}
-                <p><strong>Marca:</strong> ${p.marca}</p>
-              </div>
-            </div>
-          </div>
+    ${p.categoria_principal ? `<p class="badge bg-secondary mb-1">Categoria: ${p.categoria_principal}</p>` : ''}
+    
+    ${p.subcategoria ? `<p class="badge bg-info mb-1 ms-1">Subcategoria: ${p.subcategoria}</p>` : ''}
+    
+    ${p.pdm && p.pdm !== 'NÃO CATEGORIZADO' ? `<p class="badge bg-success mb-1 ms-1">PDM: ${p.pdm}</p>` : ''}
+    
+    ${p.nome_decifrado && p.nome !== p.nome ? `<p class="text-muted small mt-2">NF-e: ${p.nome}</p>` : (p.nome_decifrado ? '' : `<p class="text-muted small mt-2">NF-e: ${p.nome}</p>`)}
+    
+    ${p.preco_unidade ? `<p><strong>Preço/Unidade:</strong> ${p.preco_unidade}</p>` : (p.preco ? `<p><strong>Preço:</strong> ${p.preco}</p>` : '')}
+    
+    ${p.data_nota_fiscal ? `<p><strong>Data da Compra:</strong> ${p.data_nota_fiscal}</p>` : (p.data_cadastro ? `<p><strong>Data de Cadastro:</strong> ${p.data_cadastro}</p>` : '')}
+    ${p.quantidade ? `<p><strong>Qtd. na NF:</strong> ${p.quantidade}</p>` : ''}
+    <p><strong>Marca:</strong> ${p.marca}</p>
         `).join("")}
       </div>
     `;
@@ -186,20 +182,20 @@ async function configurarFormulario() {
       idInput.id = "sup-id";
       idInput.value = id;
       form.prepend(idInput);
-      
+
       // Adiciona o CNPJ para ser enviado caso esteja sendo editado
       if (data.cnpj) {
-          const cnpjInput = document.createElement('input');
-          cnpjInput.type = "hidden";
-          cnpjInput.id = "sup-cnpj";
-          cnpjInput.value = data.cnpj;
-          form.prepend(cnpjInput);
+        const cnpjInput = document.createElement('input');
+        cnpjInput.type = "hidden";
+        cnpjInput.id = "sup-cnpj";
+        cnpjInput.value = data.cnpj;
+        form.prepend(cnpjInput);
       }
 
 
       // Filtra produtos para edição: Ignora os produtos importados (que têm data_nota_fiscal)
       produtosTemporarios = (data.produtos || []).filter(p => !p.data_nota_fiscal);
-      
+
       renderizarProdutosTemporarios();
 
       form.addEventListener("submit", handleUpdate);
@@ -215,31 +211,31 @@ async function configurarFormulario() {
 
 // MUDANÇA AQUI: Adiciona preco_unidade (manual) e data de cadastro
 function adicionarProdutoTemporario() {
-  
+
   // Captura o preço e garante a formatação R$ X,XX
   const precoRaw = document.getElementById("prod-preco").value.trim();
   const precoNumerico = parseFloat(precoRaw.replace('R$', '').replace('.', '').replace(',', '.'));
-  
+
   if (isNaN(precoNumerico)) {
     alert("O Preço deve ser um valor numérico válido.");
     return;
   }
-  
+
   // Converte para o formato de string R$ X,XX
   const precoFormatado = `R$ ${precoNumerico.toFixed(2).replace('.', ',')}`;
-  
+
   // Data de registro para diferenciar
   const dataHoje = new Date().toLocaleDateString('pt-BR');
-  
+
 
   const produto = {
     nome: document.getElementById("prod-nome").value,
     // Armazena a descrição no campo original, se fornecida
-    descricao: document.getElementById("prod-desc").value, 
+    descricao: document.getElementById("prod-desc").value,
     // ALTERADO: Usa o campo preco_unidade para consistência de exibição
-    preco_unidade: precoFormatado, 
+    preco_unidade: precoFormatado,
     // Data de cadastro manual, para não ser confundido com a data da NF
-    data_cadastro: dataHoje, 
+    data_cadastro: dataHoje,
     marca: document.getElementById("prod-marca").value,
     imagem: document.getElementById("prod-img").value,
     // Garante que campos de IA e NF não existam, marcando como manual
@@ -253,8 +249,8 @@ function adicionarProdutoTemporario() {
   }
 
   // Remove o campo preco antigo que não é mais necessário
-  delete produto.preco; 
-  
+  delete produto.preco;
+
   produtosTemporarios.push(produto);
   renderizarProdutosTemporarios();
 
@@ -277,8 +273,8 @@ function renderizarProdutosTemporarios() {
 
   produtosTemporarios.forEach((prod, index) => {
     // Tenta usar o novo campo (preferencial), senão usa o campo antigo 'preco'
-    const precoDisplay = prod.preco_unidade || prod.preco || 'N/A'; 
-    
+    const precoDisplay = prod.preco_unidade || prod.preco || 'N/A';
+
     container.innerHTML += `
       <div class="card card-body mb-2">
         <strong>${prod.nome}</strong> - ${precoDisplay}
@@ -338,25 +334,25 @@ async function handleUpdate(event) {
   try {
     const existingResponse = await fetch(`${API_URL}/${id}`);
     const existingData = await existingResponse.json();
-    
+
     // Filtra produtos antigos: mantém apenas os produtos da NF (que têm data_nota_fiscal)
     const produtosImportados = (existingData.produtos || []).filter(p => p.data_nota_fiscal);
-    
+
     // Combina os produtos: produtos importados + produtos editados manualmente
     const produtosCompletos = produtosImportados.concat(produtosTemporarios);
 
     const supermercado = {
-        nome: document.getElementById("sup-nome").value,
-        cidade: document.getElementById("sup-cidade").value,
-        endereco: document.getElementById("sup-endereco").value,
-        telefone: document.getElementById("sup-telefone").value,
-        imagem: document.getElementById("sup-img").value,
-        destaque: document.getElementById("sup-destaque").checked,
-        // Adiciona CNPJ se existir (foi incluído como hidden input se já existia)
-        cnpj: document.getElementById("sup-cnpj") ? document.getElementById("sup-cnpj").value : existingData.cnpj,
-        produtos: produtosCompletos
+      nome: document.getElementById("sup-nome").value,
+      cidade: document.getElementById("sup-cidade").value,
+      endereco: document.getElementById("sup-endereco").value,
+      telefone: document.getElementById("sup-telefone").value,
+      imagem: document.getElementById("sup-img").value,
+      destaque: document.getElementById("sup-destaque").checked,
+      // Adiciona CNPJ se existir (foi incluído como hidden input se já existia)
+      cnpj: document.getElementById("sup-cnpj") ? document.getElementById("sup-cnpj").value : existingData.cnpj,
+      produtos: produtosCompletos
     };
-  
+
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
       headers: {
@@ -369,7 +365,7 @@ async function handleUpdate(event) {
 
     alert("Supermercado atualizado com sucesso!");
     produtosTemporarios = [];
-    window.location.href = `detalhe.html?id=${id}`; 
+    window.location.href = `detalhe.html?id=${id}`;
 
   } catch (error) {
     console.error(error);
@@ -401,14 +397,14 @@ async function handleExcluir(id) {
 // Função para tratar o envio da URL da NF (Chama o servidor de automação)
 async function handleImportarNF(event) {
   event.preventDefault();
-  
+
   const nfURL = document.getElementById("nf-url").value;
   // Elementos de feedback no importar.html
-  const messageArea = document.getElementById("message-area") || { textContent: '', style: {} }; 
+  const messageArea = document.getElementById("message-area") || { textContent: '', style: {} };
   const btnSubmit = document.querySelector("#form-importar-nf button[type='submit']");
-  
-  messageArea.textContent = ''; 
-  
+
+  messageArea.textContent = '';
+
   if (!nfURL) {
     messageArea.textContent = "A URL da Nota Fiscal é obrigatória.";
     messageArea.style.color = 'red';
@@ -416,7 +412,7 @@ async function handleImportarNF(event) {
   }
 
   // URL do servidor de automação
-  const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf"; 
+  const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf";
 
   btnSubmit.disabled = true;
   messageArea.textContent = 'Iniciando download e processamento da NF (incluindo IA)... Por favor, aguarde.';
@@ -425,25 +421,25 @@ async function handleImportarNF(event) {
   try {
     // 1. Chama o servidor de automação (porta 3001) para executar os scripts
     const automationResponse = await fetch(API_AUTOMAÇÃO_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        // Envia apenas a URL
-        body: JSON.stringify({ url: nfURL }) 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      // Envia apenas a URL
+      body: JSON.stringify({ url: nfURL })
     });
 
     const automationData = await automationResponse.json();
 
     if (automationResponse.ok && automationData.success) {
-        // Redireciona para o início ou mostra sucesso
-        messageArea.textContent = `Sucesso: ${automationData.message}`;
-        messageArea.style.color = 'green';
-        document.getElementById("nf-url").value = ''; // Limpa o campo
-        // Redirecionamos para a página inicial para carregar os novos dados
-        window.location.href = "index.html"; 
+      // Redireciona para o início ou mostra sucesso
+      messageArea.textContent = `Sucesso: ${automationData.message}`;
+      messageArea.style.color = 'green';
+      document.getElementById("nf-url").value = ''; // Limpa o campo
+      // Redirecionamos para a página inicial para carregar os novos dados
+      window.location.href = "index.html";
     } else {
-        throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
+      throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
     }
 
   } catch (error) {

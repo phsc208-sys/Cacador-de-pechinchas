@@ -2,19 +2,22 @@
 const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio'); 
+// NÃO PRECISA de 'dotenv' nem '@google/generative-ai'
 
 // --- Configuração de Caminhos ---
 const DB_PATH = path.join(__dirname, 'db', 'db.json');
 const NF_HTML_PATH = path.join(__dirname, 'pagina_nf.html');
-// Caminho 1: O CACHE DA IA (O seu arquivo original)
+
+// CAMINHO 1: O CACHE DA IA (O seu ficheiro original)
 const CATEGORIAS_MAP_PATH = path.join(__dirname, 'db', 'definição_map.json');
-// Caminho 2: O SEU MAPA GIGANTE (Nível 1 > Nível 2 > Nível 3 PDM)
+
+// CAMINHO 2: O SEU MAPA GIGANTE (Nível 1 > Nível 2 > Nível 3 PDM)
 const PDM_MAP_PATH = path.join(__dirname, 'db', 'pdm_map.json'); 
 
 // --- Configuração da IA (Usando Fetch, como no seu original) ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
-// A SUA CHAVE DE API ORIGINAL:
-const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; //
+// A SUA CHAVE DE API ORIGINAL (Do seu ficheiro anterior):
+const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; 
 
 // --- Função da IA (Usando Fetch) ---
 async function categorizarProdutosComIA(produtos) {
@@ -31,69 +34,69 @@ async function categorizarProdutosComIA(produtos) {
     3. Categorizar o produto em uma 'Subcategoria' (Ex: Laticínios, Cereais, Sabonetes).
     
     A saída DEVE ser um array JSON de objetos, onde cada objeto tem as chaves: 'nome_original', 'nome_decifrado', 'categoria_principal', e 'subcategoria'.`;
-    
-    // Schema (Apenas para o prompt, já que fetch não o impõe)
-    const responseSchema = {
-        type: "ARRAY",
-        items: {
-            type: "OBJECT",
-            properties: {
-                "nome_original": { "type": "STRING" },
-                "nome_decifrado": { "type": "STRING" },
-                "categoria_principal": { "type": "STRING" },
-                "subcategoria": { "type": "STRING" }
-            },
-        }
-    };
 
     const payload = {
         contents: [{ parts: [{ text: userQuery }] }],
         systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
             responseMimeType: "application/json",
-            // responseSchema: responseSchema, // 'fetch' não suporta schema, mas o prompt o instrui
             temperature: 0.2
         }
     };
 
-    try {
-        if (!API_KEY) {
-            console.error("[IA] ERRO: Chave API não configurada.");
-            return null;
-        }
-        
-        const response = await fetch(GEMINI_API_URL + API_KEY, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+    let attempts = 0;
+    const maxAttempts = 3;
 
-        if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(`Erro HTTP ${response.status}: ${JSON.stringify(errorBody)}`);
-        }
+    while (attempts < maxAttempts) {
+        try {
+            if (!API_KEY) {
+                console.error("[IA] ERRO: Chave API não configurada.");
+                return null;
+            }
+            
+            const response = await fetch(GEMINI_API_URL + API_KEY, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        const result = await response.json();
-        const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(`Erro HTTP ${response.status}: ${JSON.stringify(errorBody)}`);
+            }
 
-        if (jsonText) {
-            return JSON.parse(jsonText);
-        } else {
-            throw new Error("Resposta da IA vazia ou mal formatada.");
+            const result = await response.json();
+            // Verifica a estrutura da resposta do 'fetch'
+            const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (jsonText) {
+                const parsedData = JSON.parse(jsonText);
+                return parsedData; // Sucesso
+            } else {
+                console.warn("[IA] Resposta da IA recebida, mas texto JSON vazio:", JSON.stringify(result));
+                throw new Error("Resposta da IA vazia ou mal formatada.");
+            }
+        } catch (error) {
+            attempts++;
+            console.warn(`[IA] Tentativa ${attempts} falhou (fetch): ${error.message}.`);
+            if (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s
+            } else {
+                console.error("[IA] Todas as tentativas de categorização falharam.");
+                // Retorna um array com falhas para não parar o processo
+                return nomesAbreviados.map(nome => ({
+                    nome_original: nome,
+                    nome_decifrado: nome,
+                    categoria_principal: "FALHA NA IA",
+                    subcategoria: "FALHA NA IA"
+                }));
+            }
         }
-    } catch (error) {
-        console.error(`[IA] Falha na chamada da IA (fetch): ${error.message}.`);
-        return nomesAbreviados.map(nome => ({
-            nome_original: nome,
-            nome_decifrado: nome,
-            categoria_principal: "FALHA NA IA",
-            subcategoria: "FALHA NA IA"
-        }));
     }
 }
 
 // --- FUNÇÃO DE EXTRAÇÃO (SCRAPING) ---
-// (Sua função original)
+// (Esta é a sua função original, está correta)
 function extrairDadosNF(html) {
     const $ = cheerio.load(html);
     const nomeSupermercadoRaw = $('th.text-center.text-uppercase h4 b').text().trim();
@@ -101,7 +104,8 @@ function extrairDadosNF(html) {
     
     const infoSupermercado = $('table.table tbody tr:nth-child(1) td').text().trim();
     const cnpjMatch = infoSupermercado.match(/CNPJ:\s*([\d\.\/-]+)/);
-    const cnpj = cnpjMatch ? cnpjMatch[1].trim() : null; 
+    const cnpj = cnpjMatch ? cnpjMatch[1].trim().replace(/[.\/-]/g, '') : null; // Limpa para comparar
+    const cnpjFormatado = cnpjMatch ? cnpjMatch[1].trim() : null; // Guarda o original
 
     const enderecoCompleto = $('table.table tbody tr:nth-child(2) td').text().trim();
     const partes = enderecoCompleto.split(', ');
@@ -137,7 +141,7 @@ function extrairDadosNF(html) {
             let precoUnidadeFormatado = `R$ ${precoUnidadeCalculado.toFixed(2).replace('.', ',')}`;
 
             produtos.push({
-                nome: nome,
+                nome: nome, // NOME ABREVIADO (Ex: "LTE L V CAM INT 1L")
                 data_nota_fiscal: dataEmissaoNF, 
                 preco_unidade: precoUnidadeFormatado, 
                 quantidade: quantidadeString,
@@ -151,14 +155,15 @@ function extrairDadosNF(html) {
     return {
         supermercado: {
             nome: nomeSupermercado,
-            cnpj: cnpj, 
+            cnpj: cnpjFormatado, // Salva o CNPJ formatado
             cidade: cidade,
             endereco: endereco,
             telefone: 'N/A', 
             imagem: `assets/img/supermercadosbh.jpg`, 
             destaque: false,
         },
-        produtos: produtos
+        produtos: produtos,
+        cnpjLimpo: cnpj // Passa o CNPJ limpo para a lógica de busca
     };
 }
 
@@ -169,9 +174,9 @@ function normalizar(str) {
     return str
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") 
-        .replace(/[\u0300-\u036f]/g, "") 
-        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()'"?]/g, ""); 
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove caracteres de controle
+        .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()'"?]/g, ""); // Remove pontuação
 }
 
 function encontrarPDM(nomeDecifrado, pdmMap) {
@@ -179,19 +184,21 @@ function encontrarPDM(nomeDecifrado, pdmMap) {
     let melhorMatch = "NÃO CATEGORIZADO";
     let tamanhoMelhorMatch = 0;
 
-    for (const categoria in pdmMap) { 
+    for (const categoria in pdmMap) { // Nível 1 do PDM Map
         const subcategorias = pdmMap[categoria];
-        for (const subcategoria in subcategorias) { 
+        for (const subcategoria in subcategorias) { // Nível 2 do PDM Map
             const pdmLista = subcategorias[subcategoria];
-            for (const pdm of pdmLista) { 
+            for (const pdm of pdmLista) { // Nível 3 (O PDM)
                 const pdmNormalizado = normalizar(pdm);
                 
-                if (!pdmNormalizado || pdmNormalizado.length < 3) continue; 
+                if (!pdmNormalizado || pdmNormalizado.length < 3) continue; // Ignora PDMs curtos/vazios
 
+                // Se o nome destrinchado (Nível 4) contém o PDM (Nível 3)
                 if (nomeNormalizado.includes(pdmNormalizado)) {
+                    // Salva o match mais longo (mais específico)
                     if (pdmNormalizado.length > tamanhoMelhorMatch) {
                         tamanhoMelhorMatch = pdmNormalizado.length;
-                        melhorMatch = pdm; 
+                        melhorMatch = pdm; // Salva o Nível 3
                     }
                 }
             }
@@ -201,11 +208,12 @@ function encontrarPDM(nomeDecifrado, pdmMap) {
 }
 
 // --- FUNÇÃO DE ATUALIZAÇÃO DO DB (MODIFICADA) ---
-function atualizarDbJson(dadosSupermercado, produtosParaAdicionar, categoriasIA, pdmMap) {
+function atualizarDbJson(dadosSupermercado, cnpjLimpo, produtosParaAdicionar, categoriasIACache, pdmMap) {
     const dbConteudo = fs.readFileSync(DB_PATH, 'utf8');
     const db = JSON.parse(dbConteudo);
 
-    let supermercadoExistente = db.supermercados.find(s => s.cnpj === dadosSupermercado.cnpj);
+    // Tenta encontrar pelo CNPJ limpo
+    let supermercadoExistente = db.supermercados.find(s => s.cnpj && normalizar(s.cnpj).replace(/[\.\/-]/g, '') === cnpjLimpo);
 
     if (!supermercadoExistente) {
         const newId = Math.random().toString(36).substring(2, 6);
@@ -217,6 +225,9 @@ function atualizarDbJson(dadosSupermercado, produtosParaAdicionar, categoriasIA,
     } else {
         supermercadoExistente.cidade = dadosSupermercado.cidade;
         supermercadoExistente.endereco = dadosSupermercado.endereco;
+        if (!supermercadoExistente.cnpj) {
+            supermercadoExistente.cnpj = dadosSupermercado.cnpj;
+        }
         console.log(`\n[Processamento] Supermercado encontrado (CNPJ: ${supermercadoExistente.cnpj}): ${supermercadoExistente.nome}`);
     }
 
@@ -224,6 +235,7 @@ function atualizarDbJson(dadosSupermercado, produtosParaAdicionar, categoriasIA,
     if (!supermercadoExistente.produtos) supermercadoExistente.produtos = [];
 
     produtosParaAdicionar.forEach(prodNF => {
+        // Verifica duplicidade
         const isDuplicate = supermercadoExistente.produtos.some(
             existingProd => 
                 existingProd.nome === prodNF.nome && 
@@ -233,7 +245,7 @@ function atualizarDbJson(dadosSupermercado, produtosParaAdicionar, categoriasIA,
 
         if (!isDuplicate) {
             // Pega os dados do cache da IA (Níveis 1, 2, 4)
-            const infoIA = categoriasIA[prodNF.nome] || {
+            const infoIA = categoriasIACache[prodNF.nome] || {
                 nome_decifrado: prodNF.nome,
                 categoria_principal: "NÃO CATEGORIZADO",
                 subcategoria: "NÃO CATEGORIZADO"
@@ -263,7 +275,6 @@ function atualizarDbJson(dadosSupermercado, produtosParaAdicionar, categoriasIA,
 
 
 // --- LÓGICA PRINCIPAL (HÍBRIDA + APRENDIZADO) ---
-// (Esta é a sua lógica original, agora com o PDM_MAP)
 async function main() {
     try {
         // 1. Carregar o Mapa PDM (Seu JSON Gigante)
@@ -278,6 +289,7 @@ async function main() {
             categoriasMap = JSON.parse(fs.readFileSync(CATEGORIAS_MAP_PATH, 'utf8'));
         } else {
             console.warn(`[Processamento] Arquivo de cache '${CATEGORIAS_MAP_PATH}' não encontrado. Criando um novo...`);
+            fs.writeFileSync(CATEGORIAS_MAP_PATH, JSON.stringify({}, null, 2), 'utf8');
         }
 
         // 3. Extrair dados da NF (Scraping)
@@ -305,7 +317,7 @@ async function main() {
                 console.log("[IA] Resposta do Gemini recebida. Atualizando cache...");
                 
                 resultadosIA.forEach(item => {
-                    if (item.nome_original) { 
+                    if (item && item.nome_original) { 
                         categoriasMap[item.nome_original] = {
                             nome_decifrado: item.nome_decifrado,
                             categoria_principal: item.categoria_principal,
@@ -322,9 +334,7 @@ async function main() {
         }
         
         // 6. Atualizar o db.json
-        // Passa os dados do Supermercado, a lista de produtos da NF,
-        // o cache da IA (completo), e o mapa PDM.
-        atualizarDbJson(dados.supermercado, dados.produtos, categoriasMap, pdmMap);
+        atualizarDbJson(dados.supermercado, dados.cnpjLimpo, dados.produtos, categoriasMap, pdmMap);
         
     } catch (error) {
         console.error("\n--- ERRO NO PROCESSO DE RASPAGEM E SALVAMENTO ---");
