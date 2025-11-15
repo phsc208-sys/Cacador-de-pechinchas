@@ -12,12 +12,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/icei-diw-ead/diw-tp-06-t1-phsc208-sys.git"
+    "url": "git+https://github.com/icei-diw-ead/diw-tp-07-t1-phsc208-sys.git"
   },
   "bugs": {
-    "url": "https://github.com/icei-diw-ead/diw-tp-06-t1-phsc208-sys/issues"
+    "url": "https://github.com/icei-diw-ead/diw-tp-07-t1-phsc208-sys/issues"
   },
-  "homepage": "https://github.com/icei-diw-ead/diw-tp-06-t1-phsc208-sys#readme",
+  "homepage": "https://github.com/icei-diw-ead/diw-tp-07-t1-phsc208-sys#readme",
   "devDependencies": {
     "json-server": "^1.0.0-beta.3"
   },
