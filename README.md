@@ -1,24 +1,26 @@
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=21634690)
-
-# Trabalho Prático 07 - Semanas 13 e 14
-
-A partir dos dados cadastrados na etapa anterior, vamos trabalhar formas de apresentação que representem de forma clara e interativa as informações do seu projeto. Você poderá usar gráficos (barra, linha, pizza), mapas, calendários ou outras formas de visualização. Seu desafio é entregar uma página Web que organize, processe e exiba os dados de forma compreensível e esteticamente agradável.
-
-Com base nos tipos de projetos escohidos, você deve propor **visualizações que estimulem a interpretação, agrupamento e exibição criativa dos dados**, trabalhando tanto a lógica quanto o design da aplicação.
-
-Sugerimos o uso das seguintes ferramentas acessíveis: [FullCalendar](https://fullcalendar.io/), [Chart.js](https://www.chartjs.org/), [Mapbox](https://docs.mapbox.com/api/), para citar algumas.
+[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=21193301)
+[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=21193301)
+#Trabalho Prático 06 - Semanas 11 e 12
 
 ## Informações do trabalho
 
-- Nome:
-- Matricula:
-- Proposta de projeto escolhida:
-- Breve descrição sobre seu projeto:
+  - Nome: Pedro Henrique Santos Cardoso
+  - Matricula: 1603205
+  - Proposta de projeto escolhida: Caçador de Pechinchas
+  - Breve descrição sobre seu projeto: Um site que lista supermercados e seus produtos, permitindo o cadastro, edição e exclusão (CRUD) de estabelecimentos.
 
-**Print da tela com a implementação**
+**Print dos testes da API com Postman ou similar**
 
-<< Coloque aqui uma breve explicação da implementação feita nessa etapa>>
+<img src="public\assets\img\para o readme\GET.png" alt="IMAGEM GET AQUI">
 
-<<  COLOQUE A IMAGEM TELA 1 AQUI >>
+<img src="public\assets\img\para o readme\POST.png" alt="IMAGEM POST AQUI">
 
-<<  COLOQUE A IMAGEM TELA 2 AQUI >>
+<img src="public\assets\img\para o readme\PUT.png" alt="IMAGEM PUT AQUI">
+
+<img src="public\assets\img\para o readme\DELETE.png" alt="IMAGEM DELETE AQUI">
+
+**Print da aba NETWORK com requisições Fetch/XHR POST e GET**
+
+<img src="public\assets\img\para o readme\Nova pasta\get.png" alt="IMAGEM GET AQUI">
+
+<img src="public\assets\img\para o readme\Nova pasta\post.png" alt="IMAGEM POST AQUI">

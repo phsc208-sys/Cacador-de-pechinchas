@@ -135,6 +135,7 @@ async function montarDetalhes() {
                 
                 ${p.categoria_principal ? `<p class="badge bg-secondary">Categoria: ${p.categoria_principal}</p>` : ''}
                 ${p.subcategoria ? `<p class="badge bg-info ms-2">Subcategoria: ${p.subcategoria}</p>` : ''}
+                ${p.pdm ? `<p class="badge bg-success mb-1 ms-1">PDM: ${p.pdm}</p>` : ''}
                 
                 ${p.nome_decifrado && p.nome !== p.nome_decifrado ? `<p class="text-muted small mt-2">Original: ${p.nome}</p>` : ''}
                 
