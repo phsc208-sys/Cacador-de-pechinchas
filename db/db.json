@@ -235,17 +235,17 @@
       "telefone": "N/A",
       "imagem": "assets/img/supermercadosbh.jpg",
       "destaque": false,
-      "id": "8rts",
+      "id": "oshy",
       "produtos": [
         {
           "nome": "LTE L V CAM INT 1L",
           "data_nota_fiscal": "01/11/2025",
           "preco_unidade": "R$ 4,38",
           "quantidade": "2.000",
-          "data_processamento": "08/11/2025",
+          "data_processamento": "15/11/2025",
           "marca": "SUPERMERCADOS BH",
           "imagem": "assets/img/produtos/generico.jpg",
-          "nome_decifrado": "Leite UHT Longa Vida Integral Camponesa 1 Litro",
+          "nome_decifrado": "Leite Longa Vida Integral Camponesa 1 Litro",
           "categoria_principal": "Alimentos",
           "subcategoria": "Laticínios"
         },
@@ -254,12 +254,12 @@
           "data_nota_fiscal": "01/11/2025",
           "preco_unidade": "R$ 10,98",
           "quantidade": "1.000",
-          "data_processamento": "08/11/2025",
+          "data_processamento": "15/11/2025",
           "marca": "SUPERMERCADOS BH",
           "imagem": "assets/img/produtos/generico.jpg",
-          "nome_decifrado": "Iogurte Itambé com Pedaços de Coco 450g",
+          "nome_decifrado": "Iogurte Itambé Pedaços de Coco 450g",
           "categoria_principal": "Alimentos",
-          "subcategoria": "Laticínios"
+          "subcategoria": "Iogurtes"
         }
       ]
     }
