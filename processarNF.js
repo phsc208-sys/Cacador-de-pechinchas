@@ -16,7 +16,7 @@ const PDM_MAP_PATH = path.join(__dirname, 'db', 'pdm_map.json');
 
 // --- Configuração da IA (Usando Fetch, como no seu original) ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
-// A SUA CHAVE DE API ORIGINAL:
+// A SUA CHAVE DE API ORIGINAL (Do seu ficheiro anterior):
 const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; 
 
 // --- Função da IA (Usando Fetch) ---
@@ -89,6 +89,7 @@ async function categorizarProdutosComIA(produtos) {
                 await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s
             } else {
                 console.error("[IA] Todas as tentativas de categorização falharam.");
+                // Retorna um array com falhas para não parar o processo
                 return nomesAbreviados.map(nome => ({
                     nome_original: nome,
                     nome_decifrado: nome,
@@ -283,7 +284,7 @@ async function main() {
         if (fs.existsSync(CATEGORIAS_MAP_PATH)) {
             try {
                 const cacheContent = fs.readFileSync(CATEGORIAS_MAP_PATH, 'utf8');
-                if (cacheContent.trim() === "") { 
+                if (cacheContent.trim() === "" || cacheContent.trim() === "{}") { 
                     console.warn(`[Processamento] Arquivo de cache '${CATEGORIAS_MAP_PATH}' está vazio. Iniciando com cache vazio.`);
                     categoriasMap = {};
                 } else {
