@@ -235,7 +235,7 @@
       "telefone": "N/A",
       "imagem": "assets/img/supermercadosbh.jpg",
       "destaque": false,
-      "id": "f161",
+      "id": "8auk",
       "produtos": [
         {
           "nome": "LTE L V CAM INT 1L",
@@ -246,8 +246,9 @@
           "marca": "SUPERMERCADOS BH",
           "imagem": "assets/img/produtos/generico.jpg",
           "nome_decifrado": "Leite Longa Vida Integral Camponesa 1 Litro",
-          "categoria_principal": "Alimentos",
-          "subcategoria": "Laticínios"
+          "categoria_principal": "SUBSISTÊNCIA",
+          "subcategoria": "OVOS E LATICÍNIOS",
+          "Pdm": "LEITE"
         },
         {
           "nome": "IOG ITAM PED COC 450",
@@ -258,8 +259,9 @@
           "marca": "SUPERMERCADOS BH",
           "imagem": "assets/img/produtos/generico.jpg",
           "nome_decifrado": "Iogurte Itambé com Pedaços de Coco 450g",
-          "categoria_principal": "Alimentos",
-          "subcategoria": "Iogurtes e Sobremesas Lácteas"
+          "categoria_principal": "SUBSISTÊNCIA",
+          "subcategoria": "OVOS E LATICÍNIOS",
+          "Pdm": "IOGURTE"
         }
       ]
     }

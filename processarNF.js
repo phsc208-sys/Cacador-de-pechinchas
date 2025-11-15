@@ -1,4 +1,4 @@
-// processarNF.js (Modo HÍBRIDO: Mapeamento Manual + Fallback IA + Categorização CATMAT)
+// processarNF.js (Modo HÍBRIDO: Mapeamento Manual + Fallback IA com direcionamento CATMAT)
 const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio'); 
@@ -6,37 +6,91 @@ const cheerio = require('cheerio');
 // --- Configuração de Caminhos ---
 const DB_PATH = path.join(__dirname, 'db', 'db.json');
 const NF_HTML_PATH = path.join(__dirname, 'pagina_nf.html');
-
-// MODIFICADO: Corrigido o caminho e o nome do arquivo (tinha um 'ç' inválido)
 const DEFINICAO_MAP_PATH = path.join(__dirname, 'db', 'definição_map.json');
+// O arquivo catmat_completo_agrupado.json não é mais lido pelo script.
 
-// NOVO: Caminho para o CATMAT (coloque este arquivo na raiz do projeto)
-const CATMAT_PATH = path.join(__dirname, 'catmat_completo_agrupado.json');
-
-// --- Configuração da IA (usada como fallback) ---
+// --- Configuração da IA ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
 const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; // Sua chave API
 
-// NOVO: Variáveis globais para o mapa CATMAT
-let catmatMap = {};
-let sortedCatmatKeys = [];
+// NOVO: Lista de Grupos (categorias principais) válidos do CATMAT
+// Isso força a IA a usar a terminologia correta.
+const GRUPOS_CATMAT_VALIDOS = [
+    "ARMAMENTO", "MATERIAIS BÉLICOS NUCLEARES", "EQUIPAMENTOS DE TIRO", 
+    "MUNIÇÕES E EXPLOSIVOS", "MÍSSEIS GUIADOS", "AERONAVES E SEUS COMPONENTES ESTRUTURAIS",
+    "COMPONENTES E ACESSORIOS DE AERONAVES", "EQUIPAMENTOS PARA LANCAMENTOS, POUSO E MANOBRA DE AERONAVES",
+    "VEICULOS ESPACIAIS (ASTRONAVES)", "NAVIOS, PEQUENAS EMBARCACOES, PONTOES E DIQUES FLUTUANTES",
+    "EQUIPAMENTOS PARA NAVIOS E EMBARCACOES", "EQUIPAMENTOS FERROVIÁRIOS", "VEíCULOS", 
+    "TRATORES", "COMPONENTES DE VEÍCULOS", "PNEUS E CÂMARAS DE AR", "MOTORES, TURBINAS E SEUS COMPONENTES",
+    "ACESSÓRIOS DE MOTORES", "EQUIPAMENTOS DE TRANSMISSÃO DE FORÇA MECÂNICA", "ROLAMENTOS E MANCAIS",
+    "MÁQUINAS E EQUIPAMENTOS PARA TRABALHOS EM MADEIRA", "MAQUINAS PARA TRABALHO EM METAIS",
+    "EQUIPAMENTOS COMERCIAIS E DE SERVIÇOS", "MÁQUINAS PARA INDÚSTRIAS ESPECIALIZADAS",
+    "MÁQUINAS E EQUIPAMENTOS AGRÍCOLAS", "EQUIPAMENTOS PARA CONSTRUÇÃO, MINERAÇÃO, TERRAPLENAGEM E MANUTENÇÃO DE ESTRADAS",
+    "EQUIPAMENTOS PARA MANUSEIO DE MATERIAL", "CORDAS, CABOS, CORRENTES E SEUS ACESSÓRIOS",
+    "EQUIPAMENTOS PARA REFRIGERAÇÃO, AR CONDICIONADO E CIRCULAÇÃODE AR", 
+    "EQUIPAMENTO PARA COMBATE A INCÊNDIO, RESGATE E SEGURANÇA", "BOMBAS E COMPRESSORES",
+    "FORNOS, CENTRAIS DE VAPOR E EQUIPAMENTOS DE SECAGEM, REATORES NUCLEARES",
+    "EQUIPAMENTO DE INSTALAÇÕES HIDRÁULICAS E DE AQUECIMENTO", 
+    "EQUIPAMENTOS PARA PURIFICAÇÃO DE ÁGUAS E TRATAMENTO DE ESGOTOS", "CANOS, TUBOS, MANGUEIRAS E ACESSÓRIOS",
+    "VÁLVULAS", "EQUIPAMENTOS PARA OFICINAS DE MANUTENÇÃO E REPAROS", "FERRAMENTAS MANUAIS",
+    "INSTRUMENTOS DE MEDIÇÃO", "FERRAGENS E ABRASIVOS", "ESTRUTURAS E ANDAIMES PRÉ-FABRICADOS",
+    "TÁBUAS, ESQUADRIAS, COMPENSADOS E FOLHEADOS DE MADEIRA", "MATERIAIS PARA CONSTRUÇÃO",
+    "EQUIPAMENTOS DE COMUNICAÇÕES, DETEÇÃO E RADIAÇÃO COERENTE", 
+    "COMPONENTES DE EQUIPAMENTOS ELÉTRICOS E ELETRÔNICOS",
+    "MATERIAIS, COMPONENTES, CONJUNTOS E ACESSÓRIOS DE FIBRAS ÓTICAS",
+    "CONDUTORES ELÉTRICOS E EQUIPAMENTOS PARA GERAÇÃO E DISTRIBUIÇÃO DE ENERGIA",
+    "EQUIPAMENTOS DE ILUMINAÇÃO E LÂMPADAS", "SISTEMAS DE ALARME, SINALIZAÇÃO E DETECÇÃO PARA SEGURANÇA",
+    "MEDICAMENTOS, DROGAS E PRODUTOS BIOLOGICOS", "EQUIPAMENTOS E ARTIGOS PARA USO MÉDICO, DENTÁRIO E VETERINÁRIO",
+    "INSTRUMENTOS E EQUIPAMENTOS DE LABORATÓRIO", "EQUIPAMENTOS FOTOGRÁFICOS",
+    "SUBSTÂNCIAS E PRODUTOS QUÍMICOS", "APARELHOS E ACESSÓRIOS PARA TREINAMENTO",
+    "INFORMÁTICA - EQUIPAMENTOS, PEÇAS, ACESSÓRIOS E SUPRIMENTOSDE TIC", "MOBILIÁRIOS",
+    "UTENSILIOS E UTILIDADES DE USO DOMESTICO E COMERCIAL", "EQUIPAMENTOS PARA PREPARAR E SERVIR ALIMENTOS",
+    "MÁQUINAS PARA ESCRITÓRIO, SISTEMAS DE PROCESSAMENTO DE TEXTO E FICHÁRIOS DE CLASSIFICAÇÃO VISÍVEL",
+    "UTENSÍLIOS DE ESCRITÓRIO E MATERIAL DE EXPEDIENTE", "LIVROS, MAPAS E OUTRAS PUBLICAÇÕES",
+    "INSTRUMENTOS MUSICAIS, FONÓGRAFOS E RÁDIOS DOMÉSTICOS", "EQUIPAMENTOS PARA RECREAÇÃO E DESPORTOS",
+    "EQUIPAMENTOS E MATERIAIS PARA LIMPEZA", "PINCÉIS, TINTAS, VEDANTES E ADESIVOS",
+    "RECIPIENTES E MATERIAIS PARA ACONDICIONAMENTO E EMBALAGEM", "TECIDOS, COUROS, PELES, AVIAMENTOS, BARRACAS E BANDEIRAS",
+    "VESTUÁRIOS, EQUIPAMENTOS INDIVIDUAIS E INSÍGNIAS", "ARTIGOS DE HIGIENE", "SUPRIMENTOS AGRÍCOLAS",
+    "ANIMAIS VIVOS", "SUBSISTÊNCIA", "COMBUSTÍVEIS, LUBRIFICANTES, ÓLEOS E CERAS",
+    "MATERIAIS MANUFATURADOS, NÃO METÁLICOS", "MATÉRIAS-PRIMAS NAO METÁLICAS",
+    "BARRAS, CHAPAS E PERFILADOS METÁLICOS", "MINÉRIOS, MINERAIS E SEUS PRODUTOS PRIMÁRIOS", "DIVERSOS"
+];
 
-// --- Função da IA (igual a antes) ---
+
+// --- Função da IA (MODIFICADA para categorizar no formato CATMAT) ---
 async function categorizarProdutosComIA(produtos) {
     if (produtos.length === 0) return null;
     
     const nomesAbreviados = produtos.map(p => p.nome);
-    const userQuery = `Decifre e categorize os seguintes nomes de produtos abreviados de notas fiscais de supermercado. Devolva a resposta estritamente no formato JSON, seguindo a estrutura fornecida.
+    const userQuery = `Decifre e categorize os seguintes nomes de produtos abreviados de notas fiscais de supermercado:
     
     Nomes para processar: ${nomesAbreviados.join('; ')}`;
 
-    const systemPrompt = `Você é um especialista em varejo e decifração de abreviações de produtos de notas fiscais brasileiras. Para cada nome abreviado fornecido, você deve:
-    1. Decifrar o nome completo do produto (Ex: 'LTE L V CAM INT 1L' -> 'Leite Integral Camponesa 1 Litro').
-    2. Categorizar o produto em 'Categoria Principal' (Ex: Alimentos, Higiene, Limpeza).
-    3. Categorizar o produto em uma 'Subcategoria' (Ex: Laticínios, Cereais, Sabonetes).
+    // NOVO PROMPT: Instruindo a IA sobre a estrutura do CATMAT
+    const systemPrompt = `Você é um especialista em decifração de abreviações de produtos e sua tarefa é categorizar itens no padrão CATMAT.
     
-    A saída DEVE ser um array JSON de objetos, onde cada objeto tem as chaves: 'nome_original', 'nome_decifrado', 'categoria_principal', e 'subcategoria'.`;
+    Para cada nome abreviado, você deve:
+    1.  Decifrar o nome completo do produto (Ex: 'LTE L V CAM INT 1L' -> 'Leite Longa Vida Integral Camponesa 1 Litro').
+    2.  Identificar o PDM (Produto/Descrição de Material) genérico desse item (Ex: "LEITE" ou "IOGURTE").
+    3.  Associar o PDM ao "Grupo" (categoria_principal) e "Categoria" (subcategoria) corretos, conforme a estrutura do CATMAT.
+        
+        **IMPORTANTE:** O "Grupo" (categoria_principal) DEVE SER ESTRITAMENTE UM dos seguintes valores:
+        [${GRUPOS_CATMAT_VALIDOS.join(', ')}]
+        
+        **Exemplos de Mapeamento:**
+        -   "Iogurte Itambé..." -> PDM: "IOGURTE", Grupo: "SUBSISTÊNCIA", Categoria: "OVOS E LATICÍNIOS".
+        -   "Leite Camponesa..." -> PDM: "LEITE", Grupo: "SUBSISTÊNCIA", Categoria: "OVOS E LATICÍNIOS".
+        -   "Sabão em Pó Omo" -> PDM: "SABÃO PÓ", Grupo: "EQUIPAMENTOS E MATERIAIS PARA LIMPEZA", Categoria: "COMPOSTOS E PREPARADOS PARA LIMPEZA E POLIMENTO".
+    
+    A saída DEVE ser um array JSON de objetos, seguindo este schema exato:
+    -   "nome_original": O nome abreviado (Ex: "IOG ITAM PED COC 450")
+    -   "nome_decifrado": O nome completo (Ex: "Iogurte Itambé com Pedaços de Coco 450g")
+    -   "categoria_principal": O Grupo do CATMAT (Ex: "SUBSISTÊNCIA")
+    -   "subcategoria": A Categoria do CATMAT (Ex: "OVOS E LATICÍNIOS")
+    -   "Pdm": O PDM genérico (Ex: "IOGURTE")
+    `;
 
+    // NOVO SCHEMA: Espera o formato CATMAT completo
     const responseSchema = {
         type: "ARRAY",
         items: {
@@ -45,9 +99,11 @@ async function categorizarProdutosComIA(produtos) {
                 "nome_original": { "type": "STRING" },
                 "nome_decifrado": { "type": "STRING" },
                 "categoria_principal": { "type": "STRING" },
-                "subcategoria": { "type": "STRING" }
+                "subcategoria": { "type": "STRING" },
+                "Pdm": { "type": "STRING" }
             },
-            propertyOrdering: ["nome_original", "nome_decifrado", "categoria_principal", "subcategoria"]
+            required: ["nome_original", "nome_decifrado", "categoria_principal", "subcategoria", "Pdm"],
+            propertyOrdering: ["nome_original", "nome_decifrado", "categoria_principal", "subcategoria", "Pdm"]
         }
     };
 
@@ -109,7 +165,6 @@ async function categorizarProdutosComIA(produtos) {
 function extrairDadosNF(html) {
     const $ = cheerio.load(html);
     
-    // --- Extrair Dados do Supermercado ---
     const nomeSupermercadoRaw = $('th.text-center.text-uppercase h4 b').text().trim();
     const nomeSupermercado = nomeSupermercadoRaw.split('COMERCIO')[0].split('LTDA')[0].trim(); 
     
@@ -119,7 +174,7 @@ function extrairDadosNF(html) {
 
     const enderecoCompleto = $('table.table tbody tr:nth-child(2) td').text().trim();
     const partes = enderecoCompleto.split(', ');
-    const ufCidade = partes.pop(); 
+    partes.pop(); // Remove UF/Cidade
     const cepCidade = partes.pop(); 
     const cidade = cepCidade ? cepCidade.split(' - ')[1] : null; 
     const endereco = partes.join(', ').trim(); 
@@ -129,7 +184,6 @@ function extrairDadosNF(html) {
     
     const dataProcessamento = new Date().toLocaleDateString('pt-BR'); 
 
-    // --- Extrair Produtos ---
     const produtos = [];
     $('#myTable tr').each((i, row) => {
         const nomeQtde = $(row).find('td:nth-child(1) h7').text().trim();
@@ -141,7 +195,6 @@ function extrairDadosNF(html) {
         
         const precoTotalRaw = $(row).find('td:nth-child(4)').text().trim();
         const precoMatch = precoTotalRaw.match(/(R\$\s*[\d.,]+)/);
-        
         const precoTotal = precoMatch ? precoMatch[1] : null;
         
         if (nome && precoTotal) {
@@ -179,90 +232,41 @@ function extrairDadosNF(html) {
     };
 }
 
-// NOVO: Função para construir o mapa de busca do CATMAT
-function buildCatmatMap() {
-    console.log("[CATMAT] Carregando e processando catmat_completo_agrupado.json...");
-    try {
-        if (!fs.existsSync(CATMAT_PATH)) {
-            console.warn(`[CATMAT] Arquivo '${CATMAT_PATH}' não encontrado. A categorização avançada será pulada.`);
-            return;
-        }
-        
-        const catmatData = JSON.parse(fs.readFileSync(CATMAT_PATH, 'utf-8'));
-        
-        for (const [grupo, categorias] of Object.entries(catmatData)) {
-            if (typeof categorias === 'object' && categorias !== null) {
-                for (const [categoria, items] of Object.entries(categorias)) {
-                    if (Array.isArray(items)) {
-                        for (const item of items) {
-                            catmatMap[item.toUpperCase()] = {
-                                "grupo": grupo,
-                                "categoria": categoria
-                            };
-                        }
-                    }
-                }
-            }
-        }
-        
-        sortedCatmatKeys = Object.keys(catmatMap).sort((a, b) => b.length - a.length);
-        console.log(`[CATMAT] Mapa de categorização criado com ${sortedCatmatKeys.length} itens.`);
-        
-    } catch (e) {
-        console.error(`[CATMAT] Erro ao processar o arquivo CATMAT: ${e.message}`);
-    }
-}
 
-
-// MODIFICADO: Função de Atualizar o DB agora só salva os dados já processados
+// --- Função de Atualizar o DB (igual a antes) ---
 function atualizarDbJson(dadosSupermercado, produtosCompletos) {
     try {
-        // 1. Ler e parsear o db.json
         const dbConteudo = fs.readFileSync(DB_PATH, 'utf8');
         const db = JSON.parse(dbConteudo);
-
         const novoSupermercado = dadosSupermercado;
         
-        // --- Tentar encontrar o supermercado pelo CNPJ ---
-        let supermercadoExistente = db.supermercados.find(s => 
-            s.cnpj === novoSupermercado.cnpj
-        );
-
-        // Fallback: Se a busca por CNPJ falhar, tentamos a busca por nome
+        let supermercadoExistente = db.supermercados.find(s => s.cnpj === novoSupermercado.cnpj);
         if (!supermercadoExistente) {
-            supermercadoExistente = db.supermercados.find(s => 
-                s.nome.toLowerCase() === novoSupermercado.nome.toLowerCase()
-            );
+            supermercadoExistente = db.supermercados.find(s => s.nome.toLowerCase() === novoSupermercado.nome.toLowerCase());
         }
-        // --- FIM DA BUSCA ---
 
-        // 3. Se não encontrar (novo estabelecimento)
         if (!supermercadoExistente) {
             const newId = Math.random().toString(36).substring(2, 6);
             novoSupermercado.id = newId;
             novoSupermercado.produtos = []; 
-
             db.supermercados.push(novoSupermercado);
             supermercadoExistente = novoSupermercado;
             console.log(`\n[Processamento] Adicionado novo supermercado (ID: ${newId}): ${supermercadoExistente.nome}`);
         } else {
-            // 4. Se encontrar, atualiza CNPJ (se estiver faltando) e Endereço
             if (!supermercadoExistente.cnpj && novoSupermercado.cnpj) {
-                supermercadoExistente.cnpj = novoSupermercado.cnpj;
+                 supermercadoExistente.cnpj = novoSupermercado.cnpj;
             }
             supermercadoExistente.cidade = novoSupermercado.cidade;
             supermercadoExistente.endereco = novoSupermercado.endereco;
             console.log(`\n[Processamento] Supermercado encontrado (CNPJ: ${supermercadoExistente.cnpj}): ${supermercadoExistente.nome}`);
         }
 
-        // 5. Adicionar os novos produtos
         let produtosAdicionadosCount = 0;
         if (!supermercadoExistente.produtos || !Array.isArray(supermercadoExistente.produtos)) {
             supermercadoExistente.produtos = [];
         }
 
         produtosCompletos.forEach(novoProd => {
-            // Critério de duplicidade: Nome, Preço UNITÁRIO E Data da Nota Fiscal são iguais
             const isDuplicate = supermercadoExistente.produtos.some(
                 existingProd => 
                     existingProd.nome === novoProd.nome && 
@@ -277,8 +281,6 @@ function atualizarDbJson(dadosSupermercado, produtosCompletos) {
         });
 
         console.log(`[Processamento] ${produtosAdicionadosCount} novos produtos adicionados ao ${supermercadoExistente.nome}.`);
-
-        // 6. Salvar o arquivo db.json
         fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf8');
         console.log(`[Processamento] Sucesso! O arquivo db.json foi atualizado.`);
 
@@ -296,47 +298,53 @@ async function main() {
             throw new Error(`ERRO: Arquivo HTML da NF não encontrado em: ${NF_HTML_PATH}`);
         }
         
-        // 1. Carregar o dicionário manual (definição_map.json)
+        // 1. Carregar o definição_map.json
         let categoriasMap = {};
         if (fs.existsSync(DEFINICAO_MAP_PATH)) {
-            categoriasMap = JSON.parse(fs.readFileSync(DEFINICAO_MAP_PATH, 'utf8'));
+            try {
+                categoriasMap = JSON.parse(fs.readFileSync(DEFINICAO_MAP_PATH, 'utf8'));
+            } catch (e) {
+                console.warn(`[Processamento] Arquivo '${DEFINICAO_MAP_PATH}' parece corrompido. Criando um novo...`);
+                categoriasMap = {};
+                fs.writeFileSync(DEFINICAO_MAP_PATH, JSON.stringify({}, null, 2), 'utf8');
+            }
         } else {
             console.warn(`[Processamento] Arquivo '${DEFINICAO_MAP_PATH}' não encontrado. Criando um novo...`);
             fs.writeFileSync(DEFINICAO_MAP_PATH, JSON.stringify({}, null, 2), 'utf8');
         }
 
-        // NOVO: Carregar o mapa CATMAT em memória
-        buildCatmatMap();
-
         // 2. Extrair dados da NF
         const dados = extrairDadosNF(fs.readFileSync(NF_HTML_PATH, 'utf8'));
         
-        // 3. Lógica Híbrida: Separar produtos que precisam da IA
+        // 3. Identificar produtos que precisam ser decifrados/categorizados
         const produtosParaIA = dados.produtos.filter(p => !categoriasMap[p.nome]);
 
-        // 4. Se houver produtos para a IA, chama a API
+        // 4. Se houver produtos novos, chamar a IA
         if (produtosParaIA.length > 0) {
-            console.log(`[IA] ${produtosParaIA.length} produtos não encontrados no mapa manual. Consultando Gemini...`);
+            console.log(`[IA] ${produtosParaIA.length} produtos não encontrados no mapa. Consultando Gemini para decifrar e categorizar...`);
             
-            const resultadosIA = await categorizarProdutosComIA(produtosParaIA);
+            // A IA agora retorna o formato CATMAT completo
+            const resultadosIA = await categorizarProdutosComIA(produtosParaIA); 
             
             if (resultadosIA) {
-                console.log("[IA] Resposta do Gemini recebida.");
+                console.log("[IA] Dados recebidos. Salvando no definição_map.json...");
                 
                 let novasDefinicoes = 0;
                 
-                // Itera os resultados da IA (que é um ARRAY)
-                resultadosIA.forEach(item => {
-                    // Adiciona a nova definição ao mapa que veio do arquivo
+                // Itera os resultados da IA (array de {nome_original, nome_decifrado, ...})
+                for (const item of resultadosIA) {
+                    
+                    // Salva a definição completa no mapa
                     categoriasMap[item.nome_original] = {
                         nome_decifrado: item.nome_decifrado,
-                        categoria_principal: item.categoria_principal, // Categoria "palpite" da IA
-                        subcategoria: item.subcategoria // Categoria "palpite" da IA
+                        categoria_principal: item.categoria_principal, // Categoria do CATMAT vinda da IA
+                        subcategoria: item.subcategoria,      // Categoria do CATMAT vinda da IA
+                        Pdm: item.Pdm                         // Item exato do CATMAT vindo da IA
                     };
                     novasDefinicoes++;
-                });
+                }
 
-                // Salva o arquivo de definição (definição_map.json) atualizado
+                // Salva o definição_map.json atualizado
                 if (novasDefinicoes > 0) {
                     try {
                         fs.writeFileSync(DEFINICAO_MAP_PATH, JSON.stringify(categoriasMap, null, 2), 'utf8');
@@ -347,37 +355,26 @@ async function main() {
                 }
             }
         } else {
-            console.log("[Processamento] Todos os produtos foram encontrados no mapa manual. IA não foi necessária.");
+            console.log("[Processamento] Todos os produtos já estavam no definição_map.json. Nenhuma chamada à IA foi necessária.");
         }
         
-        // --- 5. MODIFICADO: Enriquecimento final dos produtos ---
+        // 5. Enriquecimento final dos produtos
         const produtosCompletos = dados.produtos.map(p => {
-            // Pega as informações do mapa (seja do arquivo ou da IA)
-            const infoMapa = categoriasMap[p.nome];
+            const infoMapa = categoriasMap[p.nome]; // Pega a informação completa do mapa
             
+            // Pega tudo do mapa; se não existir (raro), usa padrões.
             const nome_decifrado = infoMapa ? infoMapa.nome_decifrado : p.nome;
-            
-            // Define categorias padrão (baseadas no palpite da IA ou 'Desconhecida')
-            let categoria_principal = infoMapa ? infoMapa.categoria_principal : 'Desconhecida';
-            let subcategoria = infoMapa ? infoMapa.subcategoria : 'N/A';
-
-            // NOVO: Sobrescreve as categorias com o CATMAT
-            // Busca o nome decifrado no mapa CATMAT
-            const nomeUpper = nome_decifrado.toUpperCase();
-            for (const keyword of sortedCatmatKeys) {
-                if (nomeUpper.includes(keyword)) {
-                    const catmatInfo = catmatMap[keyword];
-                    categoria_principal = catmatInfo.grupo; // Sobrescreve
-                    subcategoria = catmatInfo.categoria; // Sobrescreve
-                    break; // Para na primeira (mais longa) correspondência
-                }
-            }
+            // Se a IA falhar (improvável), usa 'Desconhecida'
+            const categoria_principal = infoMapa ? infoMapa.categoria_principal : 'Desconhecida';
+            const subcategoria = infoMapa ? infoMapa.subcategoria : 'N/A';
+            const pdm = infoMapa ? infoMapa.Pdm : 'N/A';
 
             return {
                 ...p,
                 nome_decifrado: nome_decifrado,
                 categoria_principal: categoria_principal,
-                subcategoria: subcategoria
+                subcategoria: subcategoria,
+                Pdm: pdm // Adiciona o PDM ao produto que vai para o db.json
             };
         });
 
