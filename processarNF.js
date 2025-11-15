@@ -16,7 +16,7 @@ const PDM_MAP_PATH = path.join(__dirname, 'db', 'pdm_map.json');
 
 // --- Configuração da IA (Usando Fetch, como no seu original) ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
-// A SUA CHAVE DE API ORIGINAL (Do seu ficheiro anterior):
+// A SUA CHAVE DE API ORIGINAL:
 const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; 
 
 // --- Função da IA (Usando Fetch) ---
@@ -60,13 +60,19 @@ async function categorizarProdutosComIA(produtos) {
                 body: JSON.stringify(payload)
             });
 
+            // --- CORREÇÃO DO ERRO 'Unexpected end of JSON input' ---
+            const responseText = await response.text();
+            if (!responseText) {
+                throw new Error("A API retornou uma resposta vazia (Provável erro de chave/quota).");
+            }
+            
+            const result = JSON.parse(responseText);
+            // --- FIM DA CORREÇÃO ---
+
             if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(`Erro HTTP ${response.status}: ${JSON.stringify(errorBody)}`);
+                throw new Error(`Erro HTTP ${response.status}: ${JSON.stringify(result)}`);
             }
 
-            const result = await response.json();
-            // Verifica a estrutura da resposta do 'fetch'
             const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
             if (jsonText) {
@@ -83,7 +89,6 @@ async function categorizarProdutosComIA(produtos) {
                 await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s
             } else {
                 console.error("[IA] Todas as tentativas de categorização falharam.");
-                // Retorna um array com falhas para não parar o processo
                 return nomesAbreviados.map(nome => ({
                     nome_original: nome,
                     nome_decifrado: nome,
@@ -96,7 +101,6 @@ async function categorizarProdutosComIA(produtos) {
 }
 
 // --- FUNÇÃO DE EXTRAÇÃO (SCRAPING) ---
-// (Esta é a sua função original, está correta)
 function extrairDadosNF(html) {
     const $ = cheerio.load(html);
     const nomeSupermercadoRaw = $('th.text-center.text-uppercase h4 b').text().trim();
@@ -104,8 +108,8 @@ function extrairDadosNF(html) {
     
     const infoSupermercado = $('table.table tbody tr:nth-child(1) td').text().trim();
     const cnpjMatch = infoSupermercado.match(/CNPJ:\s*([\d\.\/-]+)/);
-    const cnpj = cnpjMatch ? cnpjMatch[1].trim().replace(/[.\/-]/g, '') : null; // Limpa para comparar
-    const cnpjFormatado = cnpjMatch ? cnpjMatch[1].trim() : null; // Guarda o original
+    const cnpj = cnpjMatch ? cnpjMatch[1].trim().replace(/[.\/-]/g, '') : null; 
+    const cnpjFormatado = cnpjMatch ? cnpjMatch[1].trim() : null; 
 
     const enderecoCompleto = $('table.table tbody tr:nth-child(2) td').text().trim();
     const partes = enderecoCompleto.split(', ');
@@ -141,7 +145,7 @@ function extrairDadosNF(html) {
             let precoUnidadeFormatado = `R$ ${precoUnidadeCalculado.toFixed(2).replace('.', ',')}`;
 
             produtos.push({
-                nome: nome, // NOME ABREVIADO (Ex: "LTE L V CAM INT 1L")
+                nome: nome, 
                 data_nota_fiscal: dataEmissaoNF, 
                 preco_unidade: precoUnidadeFormatado, 
                 quantidade: quantidadeString,
@@ -155,7 +159,7 @@ function extrairDadosNF(html) {
     return {
         supermercado: {
             nome: nomeSupermercado,
-            cnpj: cnpjFormatado, // Salva o CNPJ formatado
+            cnpj: cnpjFormatado, 
             cidade: cidade,
             endereco: endereco,
             telefone: 'N/A', 
@@ -163,7 +167,7 @@ function extrairDadosNF(html) {
             destaque: false,
         },
         produtos: produtos,
-        cnpjLimpo: cnpj // Passa o CNPJ limpo para a lógica de busca
+        cnpjLimpo: cnpj 
     };
 }
 
@@ -174,9 +178,9 @@ function normalizar(str) {
     return str
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") // Remove caracteres de controle
-        .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()'"?]/g, ""); // Remove pontuação
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "") 
+        .replace(/[\u0300-\u036f]/g, "") 
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()'"?]/g, ""); 
 }
 
 function encontrarPDM(nomeDecifrado, pdmMap) {
@@ -184,21 +188,19 @@ function encontrarPDM(nomeDecifrado, pdmMap) {
     let melhorMatch = "NÃO CATEGORIZADO";
     let tamanhoMelhorMatch = 0;
 
-    for (const categoria in pdmMap) { // Nível 1 do PDM Map
+    for (const categoria in pdmMap) { 
         const subcategorias = pdmMap[categoria];
-        for (const subcategoria in subcategorias) { // Nível 2 do PDM Map
+        for (const subcategoria in subcategorias) { 
             const pdmLista = subcategorias[subcategoria];
-            for (const pdm of pdmLista) { // Nível 3 (O PDM)
+            for (const pdm of pdmLista) { 
                 const pdmNormalizado = normalizar(pdm);
                 
-                if (!pdmNormalizado || pdmNormalizado.length < 3) continue; // Ignora PDMs curtos/vazios
+                if (!pdmNormalizado || pdmNormalizado.length < 3) continue; 
 
-                // Se o nome destrinchado (Nível 4) contém o PDM (Nível 3)
                 if (nomeNormalizado.includes(pdmNormalizado)) {
-                    // Salva o match mais longo (mais específico)
                     if (pdmNormalizado.length > tamanhoMelhorMatch) {
                         tamanhoMelhorMatch = pdmNormalizado.length;
-                        melhorMatch = pdm; // Salva o Nível 3
+                        melhorMatch = pdm; 
                     }
                 }
             }
@@ -212,7 +214,6 @@ function atualizarDbJson(dadosSupermercado, cnpjLimpo, produtosParaAdicionar, ca
     const dbConteudo = fs.readFileSync(DB_PATH, 'utf8');
     const db = JSON.parse(dbConteudo);
 
-    // Tenta encontrar pelo CNPJ limpo
     let supermercadoExistente = db.supermercados.find(s => s.cnpj && normalizar(s.cnpj).replace(/[\.\/-]/g, '') === cnpjLimpo);
 
     if (!supermercadoExistente) {
@@ -235,7 +236,6 @@ function atualizarDbJson(dadosSupermercado, cnpjLimpo, produtosParaAdicionar, ca
     if (!supermercadoExistente.produtos) supermercadoExistente.produtos = [];
 
     produtosParaAdicionar.forEach(prodNF => {
-        // Verifica duplicidade
         const isDuplicate = supermercadoExistente.produtos.some(
             existingProd => 
                 existingProd.nome === prodNF.nome && 
@@ -244,23 +244,18 @@ function atualizarDbJson(dadosSupermercado, cnpjLimpo, produtosParaAdicionar, ca
         );
 
         if (!isDuplicate) {
-            // Pega os dados do cache da IA (Níveis 1, 2, 4)
             const infoIA = categoriasIACache[prodNF.nome] || {
                 nome_decifrado: prodNF.nome,
                 categoria_principal: "NÃO CATEGORIZADO",
                 subcategoria: "NÃO CATEGORIZADO"
             };
-
-            // Procura o PDM (Nível 3) usando o nome destrinchado (Nível 4)
             const pdmEncontrado = encontrarPDM(infoIA.nome_decifrado, pdmMap);
-
-            // Monta o objeto final com os 4 NÍVEIS
             const produtoFinal = {
                 ...prodNF, 
-                nome_decifrado: infoIA.nome_decifrado,          // Nível 4
-                categoria_principal: infoIA.categoria_principal, // Nível 1
-                subcategoria: infoIA.subcategoria,              // Nível 2
-                pdm: pdmEncontrado                              // Nível 3
+                nome_decifrado: infoIA.nome_decifrado,
+                categoria_principal: infoIA.categoria_principal,
+                subcategoria: infoIA.subcategoria,
+                pdm: pdmEncontrado
             };
             
             supermercadoExistente.produtos.push(produtoFinal);
@@ -284,9 +279,20 @@ async function main() {
         const pdmMap = JSON.parse(fs.readFileSync(PDM_MAP_PATH, 'utf8'));
 
         // 2. Carregar o Cache da IA (definição_map.json)
-        let categoriasMap = {}; // Este é o cache
+        let categoriasMap = {}; 
         if (fs.existsSync(CATEGORIAS_MAP_PATH)) {
-            categoriasMap = JSON.parse(fs.readFileSync(CATEGORIAS_MAP_PATH, 'utf8'));
+            try {
+                const cacheContent = fs.readFileSync(CATEGORIAS_MAP_PATH, 'utf8');
+                if (cacheContent.trim() === "") { 
+                    console.warn(`[Processamento] Arquivo de cache '${CATEGORIAS_MAP_PATH}' está vazio. Iniciando com cache vazio.`);
+                    categoriasMap = {};
+                } else {
+                    categoriasMap = JSON.parse(cacheContent);
+                }
+            } catch (e) {
+                console.error(`[Processamento] ERRO ao ler o cache '${CATEGORIAS_MAP_PATH}': ${e.message}. O cache será recriado.`);
+                categoriasMap = {}; 
+            }
         } else {
             console.warn(`[Processamento] Arquivo de cache '${CATEGORIAS_MAP_PATH}' não encontrado. Criando um novo...`);
             fs.writeFileSync(CATEGORIAS_MAP_PATH, JSON.stringify({}, null, 2), 'utf8');
@@ -338,7 +344,7 @@ async function main() {
         
     } catch (error) {
         console.error("\n--- ERRO NO PROCESSO DE RASPAGEM E SALVAMENTO ---");
-        console.error(error.message);
+        console.error(error.message); // Isto irá agora mostrar o erro específico
         console.error("-------------------------------------------------");
         process.exit(1);
     }
