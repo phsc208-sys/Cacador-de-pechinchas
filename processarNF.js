@@ -16,7 +16,7 @@ const PDM_MAP_PATH = path.join(__dirname, 'db', 'pdm_map.json');
 
 // --- Configuração da IA (Usando Fetch, como no seu original) ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
-// A SUA CHAVE DE API ORIGINAL (Do seu ficheiro anterior):
+// A SUA CHAVE DE API ORIGINAL:
 const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; 
 
 // --- Função da IA (Usando Fetch) ---
