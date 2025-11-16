@@ -4,32 +4,48 @@ const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf";
 let produtosTemporarios = [];
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Código para a PÁGINA INICIAL (index.html)
   if (document.getElementById("destaquesContainer")) {
     montarDestaques();
     montarListaSupermercados();
   }
 
+  // Listeners da PÁGINA INICIAL (index.html)
+  // REMOVIDOS - Agora são gerenciados pelo nav.js e HTML
+  /*
+  if (document.getElementById("btn-inicio")) {
+    document.getElementById("btn-inicio").addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  }
+  if (document.getElementById("btn-adicionar")) {
+    document.getElementById("btn-adicionar").addEventListener("click", () => {
+      window.location.href = "cadastro.html";
+    });
+  }
+  */
+
+  // Código para a PÁGINA DE DETALHES (detalhe.html)
   if (document.getElementById("detalheContainer")) {
     montarDetalhes();
   }
 
+  // Código para a PÁGINA DE CADASTRO (cadastro.html)
   if (document.getElementById("form-supermercado")) {
     configurarFormulario();
   }
 
-  // Inicializa o formulário de importação de NF
+  // Código para a PÁGINA DE IMPORTAÇÃO (importar.html)
   if (document.getElementById("form-importar-nf")) {
     document.getElementById("form-importar-nf").addEventListener("submit", handleImportarNF);
   }
-
-  // O listener para "mapaContainer" foi removido daqui
 });
 
-
-// --- FUNÇÕES EXISTENTES (Atualizadas para Modal e Coordenadas) ---
+// --- FUNÇÕES DA PÁGINA INICIAL ---
 
 async function montarDestaques() {
   const container = document.getElementById("destaquesContainer");
+  if (!container) return; // Verificação de segurança
 
   try {
     const response = await fetch(`${API_URL}?destaque=true`);
@@ -70,6 +86,7 @@ async function montarDestaques() {
 
 async function montarListaSupermercados() {
   const container = document.getElementById("supermercadosContainer");
+  if (!container) return; // Verificação de segurança
 
   try {
     const response = await fetch(API_URL);
@@ -103,6 +120,8 @@ async function montarListaSupermercados() {
     container.innerHTML = "<p>Não foi possível carregar os supermercados.</p>";
   }
 }
+
+// --- FUNÇÕES DA PÁGINA DE DETALHES ---
 
 async function montarDetalhes() {
   const container = document.getElementById("detalheContainer");
@@ -152,7 +171,7 @@ async function montarDetalhes() {
                 
                 ${p.data_nota_fiscal ? `<p class="small mb-0"><strong>Data Compra:</strong> ${p.data_nota_fiscal}</p>` : (p.data_cadastro ? `<p class="small mb-0"><strong>Data Cadastro:</strong> ${p.data_cadastro}</p>` : '')}
                 ${p.quantidade ? `<p class="small mb-0"><strong>Qtd. na NF:</strong> ${p.quantidade}</p>` : ''}
-                <p class="small mb-0"><strong>Marca:</strong> ${p.marca}</p>
+                <p class="small mb-0"><strong>Marca:</strong> ${p.marca || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -168,6 +187,8 @@ async function montarDetalhes() {
   }
 }
 
+// --- FUNÇÕES DA PÁGINA DE CADASTRO ---
+
 async function configurarFormulario() {
   const form = document.getElementById("form-supermercado");
   const params = new URLSearchParams(window.location.search);
@@ -176,9 +197,7 @@ async function configurarFormulario() {
   document.getElementById("btn-add-produto").addEventListener("click", adicionarProdutoTemporario);
 
   if (id) {
-    document.getElementById("form-title").textContent = "Editar Supermercado";
-    document.querySelector("button[type='submit']").textContent = "Salvar Alterações";
-
+    // Modo Edição
     try {
       const response = await fetch(`${API_URL}/${id}`);
       const data = await response.json();
@@ -187,9 +206,6 @@ async function configurarFormulario() {
       document.getElementById("sup-cidade").value = data.cidade;
       document.getElementById("sup-endereco").value = data.endereco;
       document.getElementById("sup-telefone").value = data.telefone;
-      // Preenche os novos campos de lat/lon
-      document.getElementById("sup-latitude").value = data.latitude || ''; 
-      document.getElementById("sup-longitude").value = data.longitude || '';
       document.getElementById("sup-img").value = data.imagem;
       document.getElementById("sup-destaque").checked = data.destaque;
 
@@ -206,8 +222,24 @@ async function configurarFormulario() {
           cnpjInput.value = data.cnpj;
           form.prepend(cnpjInput);
       }
+      
+      // Manter coordenadas se existirem (para não as apagar na atualização)
+      if (data.latitude) {
+          const latInput = document.createElement('input');
+          latInput.type = "hidden";
+          latInput.id = "sup-latitude-hidden";
+          latInput.value = data.latitude;
+          form.prepend(latInput);
+          
+          const lonInput = document.createElement('input');
+          lonInput.type = "hidden";
+          lonInput.id = "sup-longitude-hidden";
+          lonInput.value = data.longitude;
+          form.prepend(lonInput);
+      }
 
-      produtosTemporarios = (data.produtos || []).filter(p => !p.data_nota_fiscal);
+      // Filtra produtos: mantém apenas os manuais para edição
+      produtosTemporarios = (data.produtos || []).filter(p => !p.data_nota_fiscal && p.categoria_principal === 'Manual');
       renderizarProdutosTemporarios();
       form.addEventListener("submit", handleUpdate);
 
@@ -215,25 +247,25 @@ async function configurarFormulario() {
       console.error("Erro ao carregar dados para edição:", error);
     }
   } else {
+    // Modo Criação
     form.addEventListener("submit", handleCreate);
   }
 }
 
 function adicionarProdutoTemporario() {
-  
   const precoRaw = document.getElementById("prod-preco").value.trim();
+  // Corrigindo para aceitar R$ 10,90 ou 10.90
   const precoNumerico = parseFloat(precoRaw.replace('R$', '').replace('.', '').replace(',', '.'));
   
   if (isNaN(precoNumerico)) {
-    showCustomModal("O Preço deve ser um valor numérico válido.");
+    showCustomModal("O Preço deve ser um valor numérico válido (ex: 10,99).");
     return;
   }
   
   const precoFormatado = `R$ ${precoNumerico.toFixed(2).replace('.', ',')}`;
   const dataHoje = new Date().toLocaleDateString('pt-BR');
   const nomeProduto = document.getElementById("prod-nome").value;
-  // Define imagem genérica se o campo estiver vazio
-  const imagemProduto = document.getElementById("prod-img").value || "assets/img/produtos/generico.jpg"; 
+  const imagemProduto = document.getElementById("prod-img").value || "https://placehold.co/600x400/eeeeee/333333?text=Sem+Imagem"; 
 
   if (!nomeProduto || !precoRaw) {
     showCustomModal("Nome e Preço do produto são obrigatórios.");
@@ -242,20 +274,22 @@ function adicionarProdutoTemporario() {
 
   const produto = {
     nome: nomeProduto,
-    descricao: document.getElementById("prod-desc").value, 
+    descricao: document.getElementById("prod-desc").value || 'N/A', 
     preco_unidade: precoFormatado, 
     data_cadastro: dataHoje, 
-    marca: document.getElementById("prod-marca").value,
+    marca: document.getElementById("prod-marca").value || 'N/A',
     imagem: imagemProduto,
     categoria_principal: 'Manual', // Categoria para produtos manuais
     subcategoria: 'N/A'
   };
 
+  // Remove o campo 'preco' antigo se existir, mantendo apenas 'preco_unidade'
   delete produto.preco; 
+  
   produtosTemporarios.push(produto);
   renderizarProdutosTemporarios();
 
-  // Limpa campos
+  // Limpa campos do formulário de produto
   document.getElementById("prod-nome").value = "";
   document.getElementById("prod-desc").value = "";
   document.getElementById("prod-preco").value = "";
@@ -283,7 +317,7 @@ function renderizarProdutosTemporarios() {
   });
 }
 
-// Permite que a função seja chamada pelo HTML
+// Tornando a função global para que o onclick do HTML a possa encontrar
 window.removerProdutoTemporario = function (index) {
   produtosTemporarios.splice(index, 1);
   renderizarProdutosTemporarios();
@@ -297,19 +331,11 @@ async function handleCreate(event) {
     cidade: document.getElementById("sup-cidade").value,
     endereco: document.getElementById("sup-endereco").value,
     telefone: document.getElementById("sup-telefone").value,
-    // Adiciona coordenadas
-    latitude: parseFloat(document.getElementById("sup-latitude").value),
-    longitude: parseFloat(document.getElementById("sup-longitude").value),
+    // Coordenadas não são mais pegas do formulário
     imagem: document.getElementById("sup-img").value || "https://placehold.co/600x400/eeeeee/333333?text=Sem+Imagem", 
     destaque: document.getElementById("sup-destaque").checked,
     produtos: produtosTemporarios
   };
-
-  // Validação simples de coordenadas
-  if (isNaN(supermercado.latitude) || isNaN(supermercado.longitude)) {
-      showCustomModal("Latitude e Longitude são obrigatórios e devem ser números.");
-      return;
-  }
 
   try {
     const response = await fetch(API_URL, {
@@ -338,29 +364,33 @@ async function handleUpdate(event) {
     const existingResponse = await fetch(`${API_URL}/${id}`);
     const existingData = await existingResponse.json();
     
+    // Mantém apenas os produtos importados (que têm data_nota_fiscal)
     const produtosImportados = (existingData.produtos || []).filter(p => p.data_nota_fiscal);
+    // Junta os produtos importados com os produtos manuais (editados/novos)
     const produtosCompletos = produtosImportados.concat(produtosTemporarios);
+    
     const imagemValor = document.getElementById("sup-img").value || "https://placehold.co/600x400/eeeeee/333333?text=Sem+Imagem";
+
+    // Pega as coordenadas escondidas (se existirem) para mantê-las
+    const latHidden = document.getElementById("sup-latitude-hidden");
+    const lonHidden = document.getElementById("sup-longitude-hidden");
 
     const supermercado = {
         nome: document.getElementById("sup-nome").value,
         cidade: document.getElementById("sup-cidade").value,
         endereco: document.getElementById("sup-endereco").value,
         telefone: document.getElementById("sup-telefone").value,
-        // Adiciona coordenadas
-        latitude: parseFloat(document.getElementById("sup-latitude").value),
-        longitude: parseFloat(document.getElementById("sup-longitude").value),
+        latitude: latHidden ? parseFloat(latHidden.value) : (existingData.latitude || null),
+        longitude: lonHidden ? parseFloat(lonHidden.value) : (existingData.longitude || null),
         imagem: imagemValor,
         destaque: document.getElementById("sup-destaque").checked,
         cnpj: document.getElementById("sup-cnpj") ? document.getElementById("sup-cnpj").value : existingData.cnpj,
         produtos: produtosCompletos
     };
 
-    // Validação simples de coordenadas
-    if (isNaN(supermercado.latitude) || isNaN(supermercado.longitude)) {
-        showCustomModal("Latitude e Longitude são obrigatórios e devem ser números.");
-        return;
-    }
+    // Remove lat/lon se forem null
+    if (supermercado.latitude === null) delete supermercado.latitude;
+    if (supermercado.longitude === null) delete supermercado.longitude;
   
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
@@ -400,7 +430,8 @@ async function handleExcluir(id) {
   });
 }
 
-// Função para tratar o envio da URL da NF (Chama o servidor de automação)
+// --- FUNÇÃO DA PÁGINA DE IMPORTAÇÃO ---
+
 async function handleImportarNF(event) {
   event.preventDefault();
   
