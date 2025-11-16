@@ -231,21 +231,21 @@
       "nome": "SUPERMERCADOS BH",
       "cnpj": "04641376011413",
       "cidade": "BELO HORIZONTE",
-      "endereco": "AV. DOS ANDRADAS, 302, CENTRO",
+      "endereco": "AV. DOS ANDRADAS, 302, CENTRO, BELO HORIZONTE, MGIOG ITAM PED COC 450\n\t\t\t\t\t\t\t\t\t(Código: 1800852)Qtde total de ítens: 1.000UN: POValor total R$: R$ 10,98",
       "telefone": "N/A",
       "imagem": "assets/img/supermercadosbh.jpg",
       "destaque": false,
-      "id": "8auk",
+      "id": "riru",
       "produtos": [
         {
           "nome": "LTE L V CAM INT 1L",
           "data_nota_fiscal": "01/11/2025",
           "preco_unidade": "R$ 4,38",
           "quantidade": "2.000",
-          "data_processamento": "15/11/2025",
+          "data_processamento": "16/11/2025",
           "marca": "SUPERMERCADOS BH",
           "imagem": "assets/img/produtos/generico.jpg",
-          "nome_decifrado": "Leite Longa Vida Integral Camponesa 1 Litro",
+          "nome_decifrado": "Leite Longa Vida Camponesa Integral 1 Litro",
           "categoria_principal": "SUBSISTÊNCIA",
           "subcategoria": "OVOS E LATICÍNIOS",
           "Pdm": "LEITE"
@@ -255,7 +255,7 @@
           "data_nota_fiscal": "01/11/2025",
           "preco_unidade": "R$ 10,98",
           "quantidade": "1.000",
-          "data_processamento": "15/11/2025",
+          "data_processamento": "16/11/2025",
           "marca": "SUPERMERCADOS BH",
           "imagem": "assets/img/produtos/generico.jpg",
           "nome_decifrado": "Iogurte Itambé com Pedaços de Coco 450g",
@@ -263,7 +263,9 @@
           "subcategoria": "OVOS E LATICÍNIOS",
           "Pdm": "IOGURTE"
         }
-      ]
+      ],
+      "latitude": -19.923811,
+      "longitude": -43.939227
     }
   ],
   "urlsNF": [

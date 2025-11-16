@@ -10,6 +10,7 @@ body {
   flex-direction: column;
   font-family: Arial, sans-serif;
   min-height: 100vh;
+  background-color: #f4f4f4; /* Um fundo levemente cinza */
 }
 
 /* ====== Header ====== */
@@ -21,22 +22,54 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas menores */
 }
 
 .header h1 {
   margin: 0;
+  margin-bottom: 10px; /* Adiciona espaço abaixo do título em telas pequenas */
+  width: 100%; /* Faz o título ocupar a largura total inicialmente */
+  font-size: 1.75rem; /* Ajusta o tamanho da fonte */
 }
+
+.header .d-flex {
+  width: 100%; /* Faz a barra de botões ocupar a largura total */
+  justify-content: flex-start; /* Alinha botões à esquerda */
+  gap: 5px; /* Reduz o espaço entre botões */
+}
+
+/* Em telas maiores, ajusta o layout do header */
+@media (min-width: 992px) { /* Ajustado para lg (bootstrap 5) */
+  .header {
+    flex-wrap: nowrap; /* Impede a quebra de linha */
+    align-items: center;
+  }
+  .header h1 {
+    width: auto; /* Tamanho automático para o título */
+    margin-bottom: 0; /* Remove a margem inferior */
+    font-size: 2.25rem; /* Retorna ao tamanho original */
+  }
+  .header .d-flex {
+    width: auto; /* Tamanho automático para os botões */
+    justify-content: flex-end; /* Alinha botões à direita */
+    gap: 0.5rem; /* Retorna ao gap original */
+  }
+}
+
 
 .header .btn {
   background-color: #252525;
   color: #fff;
   font-weight: bold;
   transition: 0.3s;
+  border: none;
 }
 
-.header .btn:hover {
+.header .btn:hover, .header .btn.active {
   background-color: #ffcc80;
   color: #252525;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 /* ====== Main ====== */
@@ -51,24 +84,37 @@ body {
   color: #252525;
   text-align: center;
   padding: 15px;
+  margin-top: 2rem; /* Garante espaço acima do rodapé */
 }
 
 /* ====== Cards ====== */
-#lista-supermercados .card,
-#lista-produtos .card {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+.card {
+  background-color: #ffffff;
+  border: none; /* Remove borda padrão */
+  border-radius: 8px; /* Cantos mais arredondados */
   margin-bottom: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 /* ====== Responsável ====== */
 #responsavel {
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   border: 1px solid #ddd;
   padding: 15px;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 #responsavel h2 {
@@ -93,14 +139,15 @@ body {
   max-height: 400px;
   overflow: hidden;
   margin-bottom: 20px;
-  border-radius: 5px;
+  border-radius: 8px; /* Cantos arredondados */
+  background-color: #eee; /* Fundo para caso a imagem não carregue */
 }
 
 #destaquesContainer .carousel-item img {
   width: 100%;
   height: 400px;
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: 8px;
   transition: transform 0.5s ease;
 }
 
@@ -114,4 +161,94 @@ body {
   #destaquesContainer .carousel-item img {
     height: 250px;
   }
+  .header {
+    justify-content: center; /* Centraliza no mobile */
+  }
+  .header .d-flex {
+    justify-content: center;
+  }
+  .header .btn {
+    font-size: 0.8rem; /* Diminui um pouco os botões */
+    padding: 0.3rem 0.5rem;
+  }
+}
+
+/* Estilos para o formulário de importação */
+#form-importar-nf, #form-supermercado {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-width: 700px;
+  margin: 2rem auto;
+}
+
+#message-area {
+  display: none; /* Começa escondido */
+  max-width: 700px;
+  margin: 1rem auto 0;
+  font-weight: bold;
+}
+
+/* Atualiza a exibição da mensagem de importação */
+#form-importar-nf + #message-area[style*="color"] {
+  display: block !important;
+  padding: 1rem;
+}
+#message-area[style*="color: red"] {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+#message-area[style*="color: green"] {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+#message-area[style*="color: orange"] {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
+}
+
+/* --- ESTILOS ADICIONADOS DO MAPA --- */
+
+/* Garante que o container do mapa tenha um fundo */
+#mapaContainer {
+  background-color: #f8f9fa; /* Um cinza claro */
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Define altura do mapa */
+#map {
+  height: 600px;
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* Estilo customizado para o Popup do Mapbox */
+.mapboxgl-popup-content {
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.mapboxgl-popup-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+.mapboxgl-popup-content p {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+.mapboxgl-popup-content .btn {
+  width: 100%;
+}
+.mapboxgl-popup-close-button {
+  padding: 5px;
+  font-size: 1.2rem;
 }

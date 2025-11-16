@@ -22,20 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("form-importar-nf").addEventListener("submit", handleImportarNF);
   }
 
-  const btnAdicionar = document.getElementById("btn-adicionar");
-  if (btnAdicionar) {
-    btnAdicionar.addEventListener("click", () => {
-      window.location.href = "cadastro.html";
-    });
-  }
-
-  const btnInicio = document.getElementById("btn-inicio");
-  if (btnInicio) {
-    btnInicio.addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
-  }
+  // O listener para "mapaContainer" foi removido daqui
 });
+
+
+// --- FUNÇÕES EXISTENTES (Atualizadas para Modal e Coordenadas) ---
 
 async function montarDestaques() {
   const container = document.getElementById("destaquesContainer");
@@ -51,7 +42,7 @@ async function montarDestaques() {
       const active = index === 0 ? "active" : "";
       container.innerHTML += `
         <div class="carousel-item ${active}">
-          <img src="${s.imagem}" class="d-block w-100" alt="${s.nome}">
+          <img src="${s.imagem}" class="d-block w-100" alt="${s.nome}" style="object-fit: cover; height: 400px;" onerror="this.src='https://placehold.co/1200x400/eeeeee/333333?text=Imagem+Indispon%C3%ADvel'">
           <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
             <h5>${s.nome}</h5>
             <p>${s.cidade}</p>
@@ -59,6 +50,18 @@ async function montarDestaques() {
         </div>
       `;
     });
+    
+    if (destaques.length === 0) {
+        container.innerHTML = `
+        <div class="carousel-item active">
+          <img src="https://placehold.co/1200x400/eeeeee/333333?text=Sem+Destaques" class="d-block w-100" alt="Sem destaques">
+          <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-2">
+            <h5>Adicione um supermercado</h5>
+            <p>Marque-o como destaque para aparecer aqui.</p>
+          </div>
+        </div>`;
+    }
+
   } catch (error) {
     console.error(error);
     container.innerHTML = "<p>Não foi possível carregar os destaques.</p>";
@@ -73,17 +76,23 @@ async function montarListaSupermercados() {
     if (!response.ok) throw new Error("Erro ao buscar supermercados.");
 
     const supermercados = await response.json();
+    
+    container.innerHTML = ""; 
+    
+    if (supermercados.length === 0) {
+        container.innerHTML = `<div class="col-12"><p class="text-center">Nenhum supermercado cadastrado.</p></div>`;
+        return;
+    }
 
-    container.innerHTML = "";
     supermercados.forEach(s => {
       container.innerHTML += `
         <div class="col-md-4 mb-4">
-          <div class="card h-100">
-            <img src="${s.imagem}" class="card-img-top" alt="${s.nome}">
-            <div class="card-body">
+          <div class="card h-100 shadow-sm">
+            <img src="${s.imagem}" class="card-img-top" alt="${s.nome}" style="height: 200px; object-fit: cover;" onerror="this.src='https://placehold.co/600x400/eeeeee/333333?text=Imagem+Indispon%C3%ADvel'">
+            <div class="card-body d-flex flex-column">
               <h5 class="card-title">${s.nome}</h5>
               <p class="card-text">${s.cidade} - ${s.endereco}</p>
-              <a href="detalhe.html?id=${s.id}" class="btn btn-primary">Detalhes</a>
+              <a href="detalhe.html?id=${s.id}" class="btn btn-primary mt-auto">Detalhes</a>
             </div>
           </div>
         </div>
@@ -112,7 +121,7 @@ async function montarDetalhes() {
     const s = await response.json();
 
     container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h2>${s.nome}</h2>
         <div>
           <a href="cadastro.html?id=${s.id}" class="btn btn-success">Editar</a>
@@ -123,30 +132,31 @@ async function montarDetalhes() {
       <p><strong>Endereço:</strong> ${s.endereco}</p>
       <p><strong>Telefone:</strong> ${s.telefone}</p>
       ${s.cnpj ? `<p><strong>CNPJ:</strong> ${s.cnpj}</p>` : ''}
-      <img src="${s.imagem}" alt="${s.nome}" class="img-fluid mb-4">
-      <h3>Produtos</h3>
+      ${s.latitude ? `<p><strong>Coordenadas:</strong> ${s.latitude}, ${s.longitude}</p>` : ''}
+      <img src="${s.imagem}" alt="${s.nome}" class="img-fluid rounded mb-4 shadow-sm" style="max-height: 400px; width: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/1200x400/eeeeee/333333?text=Imagem+Indispon%C3%ADvel'">
+      <h3 class="mt-4">Produtos</h3>
       <div class="row">
-        ${s.produtos.map(p => `
+        ${s.produtos && s.produtos.length > 0 ? s.produtos.map(p => `
           <div class="col-md-4 mb-3">
-            <div class="card h-100">
-              <img src="${p.imagem}" class="card-img-top" alt="${p.nome_decifrado || p.nome}">
+            <div class="card h-100 shadow-sm">
+              <img src="${p.imagem}" class="card-img-top" alt="${p.nome_decifrado || p.nome}" style="height: 180px; object-fit: cover;" onerror="this.src='https://placehold.co/600x400/eeeeee/333333?text=Sem+Imagem'">
               <div class="card-body">
                 <h5 class="card-title">${p.nome_decifrado || p.nome}</h5>
                 
-                ${p.categoria_principal ? `<p class="badge bg-secondary">Categoria: ${p.categoria_principal}</p>` : ''}
-                ${p.subcategoria ? `<p class="badge bg-info ms-2">Subcategoria: ${p.subcategoria}</p>` : ''}
+                ${p.categoria_principal ? `<span class="badge ${p.categoria_principal === 'Manual' ? 'bg-warning text-dark' : 'bg-secondary'}">${p.categoria_principal}</span>` : ''}
+                ${p.subcategoria && p.subcategoria !== 'N/A' ? `<span class="badge bg-info ms-1">${p.subcategoria}</span>` : ''}
                 
-                ${p.nome_decifrado && p.nome !== p.nome_decifrado ? `<p class="text-muted small mt-2">Original: ${p.nome}</p>` : ''}
+                ${p.nome_decifrado && p.nome !== p.nome_decifrado ? `<p class="text-muted small mt-2 mb-0">Original: ${p.nome}</p>` : ''}
                 
-                ${p.preco_unidade ? `<p><strong>Preço/Unidade:</strong> ${p.preco_unidade}</p>` : (p.preco ? `<p><strong>Preço:</strong> ${p.preco}</p>` : '')}
+                ${p.preco_unidade ? `<p class="card-text fs-5 text-success fw-bold mb-1">${p.preco_unidade}</p>` : (p.preco ? `<p class="card-text fs-5 text-success fw-bold mb-1">${p.preco}</p>` : '')}
                 
-                ${p.data_nota_fiscal ? `<p><strong>Data da Compra:</strong> ${p.data_nota_fiscal}</p>` : (p.data_cadastro ? `<p><strong>Data de Cadastro:</strong> ${p.data_cadastro}</p>` : '')}
-                ${p.quantidade ? `<p><strong>Qtd. na NF:</strong> ${p.quantidade}</p>` : ''}
-                <p><strong>Marca:</strong> ${p.marca}</p>
+                ${p.data_nota_fiscal ? `<p class="small mb-0"><strong>Data Compra:</strong> ${p.data_nota_fiscal}</p>` : (p.data_cadastro ? `<p class="small mb-0"><strong>Data Cadastro:</strong> ${p.data_cadastro}</p>` : '')}
+                ${p.quantidade ? `<p class="small mb-0"><strong>Qtd. na NF:</strong> ${p.quantidade}</p>` : ''}
+                <p class="small mb-0"><strong>Marca:</strong> ${p.marca}</p>
               </div>
             </div>
           </div>
-        `).join("")}
+        `).join("") : '<p class="col-12">Nenhum produto cadastrado para este supermercado.</p>'}
       </div>
     `;
 
@@ -166,7 +176,7 @@ async function configurarFormulario() {
   document.getElementById("btn-add-produto").addEventListener("click", adicionarProdutoTemporario);
 
   if (id) {
-    document.querySelector("header h1").textContent = "Editar Supermercado";
+    document.getElementById("form-title").textContent = "Editar Supermercado";
     document.querySelector("button[type='submit']").textContent = "Salvar Alterações";
 
     try {
@@ -177,6 +187,9 @@ async function configurarFormulario() {
       document.getElementById("sup-cidade").value = data.cidade;
       document.getElementById("sup-endereco").value = data.endereco;
       document.getElementById("sup-telefone").value = data.telefone;
+      // Preenche os novos campos de lat/lon
+      document.getElementById("sup-latitude").value = data.latitude || ''; 
+      document.getElementById("sup-longitude").value = data.longitude || '';
       document.getElementById("sup-img").value = data.imagem;
       document.getElementById("sup-destaque").checked = data.destaque;
 
@@ -186,7 +199,6 @@ async function configurarFormulario() {
       idInput.value = id;
       form.prepend(idInput);
       
-      // Adiciona o CNPJ para ser enviado caso esteja sendo editado
       if (data.cnpj) {
           const cnpjInput = document.createElement('input');
           cnpjInput.type = "hidden";
@@ -195,65 +207,51 @@ async function configurarFormulario() {
           form.prepend(cnpjInput);
       }
 
-
-      // Filtra produtos para edição: Ignora os produtos importados (que têm data_nota_fiscal)
       produtosTemporarios = (data.produtos || []).filter(p => !p.data_nota_fiscal);
-      
       renderizarProdutosTemporarios();
-
       form.addEventListener("submit", handleUpdate);
 
     } catch (error) {
       console.error("Erro ao carregar dados para edição:", error);
     }
-
   } else {
     form.addEventListener("submit", handleCreate);
   }
 }
 
-// MUDANÇA AQUI: Adiciona preco_unidade (manual) e data de cadastro
 function adicionarProdutoTemporario() {
   
-  // Captura o preço e garante a formatação R$ X,XX
   const precoRaw = document.getElementById("prod-preco").value.trim();
   const precoNumerico = parseFloat(precoRaw.replace('R$', '').replace('.', '').replace(',', '.'));
   
   if (isNaN(precoNumerico)) {
-    alert("O Preço deve ser um valor numérico válido.");
+    showCustomModal("O Preço deve ser um valor numérico válido.");
     return;
   }
   
-  // Converte para o formato de string R$ X,XX
   const precoFormatado = `R$ ${precoNumerico.toFixed(2).replace('.', ',')}`;
-  
-  // Data de registro para diferenciar
   const dataHoje = new Date().toLocaleDateString('pt-BR');
-  
+  const nomeProduto = document.getElementById("prod-nome").value;
+  // Define imagem genérica se o campo estiver vazio
+  const imagemProduto = document.getElementById("prod-img").value || "assets/img/produtos/generico.jpg"; 
+
+  if (!nomeProduto || !precoRaw) {
+    showCustomModal("Nome e Preço do produto são obrigatórios.");
+    return;
+  }
 
   const produto = {
-    nome: document.getElementById("prod-nome").value,
-    // Armazena a descrição no campo original, se fornecida
+    nome: nomeProduto,
     descricao: document.getElementById("prod-desc").value, 
-    // ALTERADO: Usa o campo preco_unidade para consistência de exibição
     preco_unidade: precoFormatado, 
-    // Data de cadastro manual, para não ser confundido com a data da NF
     data_cadastro: dataHoje, 
     marca: document.getElementById("prod-marca").value,
-    imagem: document.getElementById("prod-img").value,
-    // Garante que campos de IA e NF não existam, marcando como manual
-    categoria_principal: 'Manual',
+    imagem: imagemProduto,
+    categoria_principal: 'Manual', // Categoria para produtos manuais
     subcategoria: 'N/A'
   };
 
-  if (!produto.nome || !precoRaw) {
-    alert("Nome e Preço do produto são obrigatórios.");
-    return;
-  }
-
-  // Remove o campo preco antigo que não é mais necessário
   delete produto.preco; 
-  
   produtosTemporarios.push(produto);
   renderizarProdutosTemporarios();
 
@@ -270,29 +268,27 @@ function renderizarProdutosTemporarios() {
   container.innerHTML = "";
 
   if (produtosTemporarios.length === 0) {
-    container.innerHTML = "<p>Nenhum produto adicionado.</p>";
+    container.innerHTML = "<p>Nenhum produto adicionado manualmente.</p>";
     return;
   }
 
   produtosTemporarios.forEach((prod, index) => {
-    // Tenta usar o novo campo (preferencial), senão usa o campo antigo 'preco'
     const precoDisplay = prod.preco_unidade || prod.preco || 'N/A'; 
-    
     container.innerHTML += `
-      <div class="card card-body mb-2">
-        <strong>${prod.nome}</strong> - ${precoDisplay}
-        <button type"button" class="btn btn-sm btn-danger mt-1" onclick="removerProdutoTemporario(${index})">Remover</button>
+      <div class="card card-body mb-2 d-flex flex-row justify-content-between align-items-center">
+        <span><strong>${prod.nome}</strong> - ${precoDisplay}</span>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removerProdutoTemporario(${index})">Remover</button>
       </div>
     `;
   });
 }
 
+// Permite que a função seja chamada pelo HTML
 window.removerProdutoTemporario = function (index) {
   produtosTemporarios.splice(index, 1);
   renderizarProdutosTemporarios();
 }
 
-// MUDANÇA AQUI: handleCreate usa o array produtosTemporarios (que agora usa preco_unidade)
 async function handleCreate(event) {
   event.preventDefault();
 
@@ -301,100 +297,107 @@ async function handleCreate(event) {
     cidade: document.getElementById("sup-cidade").value,
     endereco: document.getElementById("sup-endereco").value,
     telefone: document.getElementById("sup-telefone").value,
-    imagem: document.getElementById("sup-img").value,
+    // Adiciona coordenadas
+    latitude: parseFloat(document.getElementById("sup-latitude").value),
+    longitude: parseFloat(document.getElementById("sup-longitude").value),
+    imagem: document.getElementById("sup-img").value || "https://placehold.co/600x400/eeeeee/333333?text=Sem+Imagem", 
     destaque: document.getElementById("sup-destaque").checked,
-    // Note: CNPJ não é capturado no formulário de criação, será adicionado pelo scraper
     produtos: produtosTemporarios
   };
+
+  // Validação simples de coordenadas
+  if (isNaN(supermercado.latitude) || isNaN(supermercado.longitude)) {
+      showCustomModal("Latitude e Longitude são obrigatórios e devem ser números.");
+      return;
+  }
 
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(supermercado),
     });
 
     if (!response.ok) throw new Error("Erro ao cadastrar supermercado.");
 
-    alert("Supermercado cadastrado com sucesso!");
+    showCustomModal("Supermercado cadastrado com sucesso!", "success");
     produtosTemporarios = [];
-    window.location.href = "index.html";
+    setTimeout(() => window.location.href = "index.html", 1500); // Aguarda 1.5s antes de redirecionar
 
   } catch (error) {
     console.error(error);
-    alert(error.message);
+    showCustomModal(error.message);
   }
 }
 
-// MUDANÇA AQUI: handleUpdate usa a concatenação de produtos importados e manuais
 async function handleUpdate(event) {
   event.preventDefault();
   const id = document.getElementById("sup-id").value;
 
-  // Recarrega os dados existentes para não perder produtos da NF
   try {
     const existingResponse = await fetch(`${API_URL}/${id}`);
     const existingData = await existingResponse.json();
     
-    // Filtra produtos antigos: mantém apenas os produtos da NF (que têm data_nota_fiscal)
     const produtosImportados = (existingData.produtos || []).filter(p => p.data_nota_fiscal);
-    
-    // Combina os produtos: produtos importados + produtos editados manualmente
     const produtosCompletos = produtosImportados.concat(produtosTemporarios);
+    const imagemValor = document.getElementById("sup-img").value || "https://placehold.co/600x400/eeeeee/333333?text=Sem+Imagem";
 
     const supermercado = {
         nome: document.getElementById("sup-nome").value,
         cidade: document.getElementById("sup-cidade").value,
         endereco: document.getElementById("sup-endereco").value,
         telefone: document.getElementById("sup-telefone").value,
-        imagem: document.getElementById("sup-img").value,
+        // Adiciona coordenadas
+        latitude: parseFloat(document.getElementById("sup-latitude").value),
+        longitude: parseFloat(document.getElementById("sup-longitude").value),
+        imagem: imagemValor,
         destaque: document.getElementById("sup-destaque").checked,
-        // Adiciona CNPJ se existir (foi incluído como hidden input se já existia)
         cnpj: document.getElementById("sup-cnpj") ? document.getElementById("sup-cnpj").value : existingData.cnpj,
         produtos: produtosCompletos
     };
+
+    // Validação simples de coordenadas
+    if (isNaN(supermercado.latitude) || isNaN(supermercado.longitude)) {
+        showCustomModal("Latitude e Longitude são obrigatórios e devem ser números.");
+        return;
+    }
   
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(supermercado),
     });
 
     if (!response.ok) throw new Error("Erro ao atualizar supermercado.");
 
-    alert("Supermercado atualizado com sucesso!");
+    showCustomModal("Supermercado atualizado com sucesso!", "success");
     produtosTemporarios = [];
-    window.location.href = `detalhe.html?id=${id}`; 
+    setTimeout(() => window.location.href = `detalhe.html?id=${id}`, 1500); 
 
   } catch (error) {
     console.error(error);
-    alert(error.message);
+    showCustomModal(error.message);
   }
 }
 
 async function handleExcluir(id) {
-  if (!confirm("Tem certeza que deseja excluir este supermercado?")) {
-    return;
-  }
+  // Substitui o confirm() por um modal customizado
+  showCustomModal("Tem certeza que deseja excluir este supermercado?", "confirm", async () => {
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
 
-  try {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    });
+      if (!response.ok) throw new Error("Erro ao excluir supermercado.");
 
-    if (!response.ok) throw new Error("Erro ao excluir supermercado.");
+      showCustomModal("Supermercado excluído com sucesso!", "success");
+      setTimeout(() => window.location.href = "index.html", 1500);
 
-    alert("Supermercado excluído com sucesso!");
-    window.location.href = "index.html";
-
-  } catch (error) {
-    console.error(error);
-    alert(error.message);
-  }
+    } catch (error) {
+      console.error(error);
+      showCustomModal(error.message);
+    }
+  });
 }
 
 // Função para tratar o envio da URL da NF (Chama o servidor de automação)
@@ -411,15 +414,14 @@ async function handleImportarNF(event) {
   if (!nfURL) {
     messageArea.textContent = "A URL da Nota Fiscal é obrigatória.";
     messageArea.style.color = 'red';
+    messageArea.style.display = 'block'; // Garante que a mensagem de erro seja exibida
     return;
   }
-
-  // URL do servidor de automação
-  const API_AUTOMAÇÃO_URL = "http://localhost:3001/api/importar-nf"; 
 
   btnSubmit.disabled = true;
   messageArea.textContent = 'Iniciando download e processamento da NF (incluindo IA)... Por favor, aguarde.';
   messageArea.style.color = 'orange';
+  messageArea.style.display = 'block';
 
   try {
     // 1. Chama o servidor de automação (porta 3001) para executar os scripts
@@ -439,17 +441,115 @@ async function handleImportarNF(event) {
         messageArea.textContent = `Sucesso: ${automationData.message}`;
         messageArea.style.color = 'green';
         document.getElementById("nf-url").value = ''; // Limpa o campo
-        // Redirecionamos para a página inicial para carregar os novos dados
-        window.location.href = "index.html"; 
+        
+        // Mostra um modal de sucesso e redireciona
+        showCustomModal("Importação concluída com sucesso! Redirecionando...", "success");
+        setTimeout(() => window.location.href = "index.html", 2000); 
+        
     } else {
         throw new Error(automationData.details || automationData.message || "Erro desconhecido na automação.");
     }
 
   } catch (error) {
     console.error(error);
-    messageArea.textContent = `Falha na Importação: ${error.message}. Verifique o console do servidor (porta 3001) para detalhes.`;
+    const errorMessage = `Falha na Importação: ${error.message}. Verifique o console do servidor (porta 3001) para detalhes.`;
+    messageArea.textContent = errorMessage;
     messageArea.style.color = 'red';
+    showCustomModal(errorMessage); // Mostra o erro no modal também
   } finally {
     btnSubmit.disabled = false;
   }
+}
+
+// --- FUNÇÃO MODAL CUSTOMIZADA (para substituir alert e confirm) ---
+
+/**
+ * Exibe um modal customizado.
+ * @param {string} message - A mensagem para exibir.
+ * @param {'info' | 'success' | 'confirm'} type - O tipo de modal. 'confirm' exibe botões Sim/Não.
+ * @param {function | null} onConfirm - A função a ser executada se o usuário clicar em "Sim" (apenas para type 'confirm').
+ */
+function showCustomModal(message, type = 'info', onConfirm = null) {
+  // Remove qualquer modal existente
+  let existingModal = document.getElementById('customModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  let existingBackdrop = document.getElementById('customModalBackdrop');
+  if (existingBackdrop) {
+      existingBackdrop.remove();
+  }
+
+
+  // Cria o backdrop
+  const backdrop = document.createElement('div');
+  backdrop.id = 'customModalBackdrop';
+  backdrop.style = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); z-index: 1050;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+  `;
+
+  // Cria o conteúdo do modal
+  const modalContent = document.createElement('div');
+  modalContent.id = 'customModal';
+  modalContent.style = `
+    background-color: white; padding: 20px 30px; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 90%; max-width: 400px; z-index: 1051;
+    text-align: center;
+    transform: scale(0.9); transition: transform 0.3s ease;
+  `;
+
+  // Mensagem
+  const messageElement = document.createElement('p');
+  messageElement.textContent = message;
+  messageElement.style.fontSize = '1.1rem';
+  messageElement.style.marginBottom = '20px';
+  messageElement.style.wordWrap = 'break-word';
+  modalContent.appendChild(messageElement);
+
+  // Botões
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.display = 'flex';
+  buttonContainer.style.justifyContent = 'flex-end';
+  buttonContainer.style.gap = '10px';
+  
+  const btnClose = document.createElement('button');
+  btnClose.textContent = (type === 'confirm') ? 'Não' : 'Fechar';
+  btnClose.className = 'btn btn-secondary';
+  btnClose.onclick = () => {
+    backdrop.style.opacity = 0;
+    modalContent.style.transform = 'scale(0.9)';
+    setTimeout(() => backdrop.remove(), 300);
+  };
+
+  if (type === 'confirm') {
+    const btnConfirm = document.createElement('button');
+    btnConfirm.textContent = 'Sim';
+    btnConfirm.className = 'btn btn-danger'; // Para exclusão
+    btnConfirm.onclick = () => {
+      if (onConfirm) onConfirm();
+      btnClose.onclick(); // Fecha o modal
+    };
+    buttonContainer.appendChild(btnConfirm);
+    buttonContainer.appendChild(btnClose);
+  } else {
+    // Muda a cor do botão para 'success'
+    if (type === 'success') {
+      btnClose.className = 'btn btn-success';
+    }
+    buttonContainer.appendChild(btnClose);
+  }
+
+  modalContent.appendChild(buttonContainer);
+  backdrop.appendChild(modalContent);
+  document.body.appendChild(backdrop);
+
+  // Animação de entrada
+  setTimeout(() => {
+      backdrop.style.opacity = 1;
+      modalContent.style.transform = 'scale(1)';
+  }, 10);
 }

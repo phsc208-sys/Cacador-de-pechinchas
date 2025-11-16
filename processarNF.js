@@ -1,4 +1,4 @@
-// processarNF.js (Modo HÍBRIDO: Mapeamento Manual + Fallback IA com direcionamento CATMAT)
+// processarNF.js (Modo HÍBRIDO: Mapeamento Manual + Fallback IA para Produtos E Coordenadas)
 const fs = require('fs');
 const path = require('path');
 const cheerio = require('cheerio'); 
@@ -7,14 +7,12 @@ const cheerio = require('cheerio');
 const DB_PATH = path.join(__dirname, 'db', 'db.json');
 const NF_HTML_PATH = path.join(__dirname, 'pagina_nf.html');
 const DEFINICAO_MAP_PATH = path.join(__dirname, 'db', 'definição_map.json');
-// O arquivo catmat_completo_agrupado.json não é mais lido pelo script.
 
 // --- Configuração da IA ---
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
-const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; // Sua chave API
+const API_KEY = "AIzaSyCmkJ0nkvtNOebCc2E5CDnM_V2l2UtAQBY"; // Sua chave API (MANTENHA PRIVADA)
 
-// NOVO: Lista de Grupos (categorias principais) válidos do CATMAT
-// Isso força a IA a usar a terminologia correta.
+// Lista de Grupos (categorias principais) válidos do CATMAT
 const GRUPOS_CATMAT_VALIDOS = [
     "ARMAMENTO", "MATERIAIS BÉLICOS NUCLEARES", "EQUIPAMENTOS DE TIRO", 
     "MUNIÇÕES E EXPLOSIVOS", "MÍSSEIS GUIADOS", "AERONAVES E SEUS COMPONENTES ESTRUTURAIS",
@@ -57,7 +55,7 @@ const GRUPOS_CATMAT_VALIDOS = [
 ];
 
 
-// --- Função da IA (MODIFICADA para categorizar no formato CATMAT) ---
+// --- FUNÇÃO DA IA (Categorização de Produtos) ---
 async function categorizarProdutosComIA(produtos) {
     if (produtos.length === 0) return null;
     
@@ -66,7 +64,6 @@ async function categorizarProdutosComIA(produtos) {
     
     Nomes para processar: ${nomesAbreviados.join('; ')}`;
 
-    // NOVO PROMPT: Instruindo a IA sobre a estrutura do CATMAT
     const systemPrompt = `Você é um especialista em decifração de abreviações de produtos e sua tarefa é categorizar itens no padrão CATMAT.
     
     Para cada nome abreviado, você deve:
@@ -90,7 +87,6 @@ async function categorizarProdutosComIA(produtos) {
     -   "Pdm": O PDM genérico (Ex: "IOGURTE")
     `;
 
-    // NOVO SCHEMA: Espera o formato CATMAT completo
     const responseSchema = {
         type: "ARRAY",
         items: {
@@ -109,22 +105,59 @@ async function categorizarProdutosComIA(produtos) {
 
     const payload = {
         contents: [{ parts: [{ text: userQuery }] }],
-        systemInstruction: {
-            parts: [{ text: systemPrompt }]
-        },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: responseSchema
         }
     };
 
+    return await fazerChamadaIA(payload, "Categorização de Produtos");
+}
+
+// --- NOVA FUNÇÃO DA IA (Geocodificação de Endereço) ---
+async function obterCoordenadasComIA(enderecoCompleto) {
+    if (!enderecoCompleto) return null;
+
+    const userQuery = `Converta este endereço em coordenadas geográficas: ${enderecoCompleto}`;
+    
+    const systemPrompt = `Você é um assistente de geocodificação. Sua tarefa é retornar a latitude e longitude de um endereço fornecido.
+    A saída DEVE ser um objeto JSON único seguindo este schema exato:
+    - "latitude": O valor numérico da latitude (Ex: -19.923)
+    - "longitude": O valor numérico da longitude (Ex: -43.9298)
+    `;
+
+    const responseSchema = {
+        type: "OBJECT",
+        properties: {
+            "latitude": { "type": "NUMBER" },
+            "longitude": { "type": "NUMBER" }
+        },
+        required: ["latitude", "longitude"]
+    };
+
+    const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: responseSchema
+        }
+    };
+
+    return await fazerChamadaIA(payload, "Geocodificação");
+}
+
+
+// --- FUNÇÃO AUXILIAR GENÉRICA PARA IA ---
+async function fazerChamadaIA(payload, nomeTarefa) {
     let attempts = 0;
     const maxAttempts = 3;
 
     while (attempts < maxAttempts) {
         try {
             if (!API_KEY || API_KEY === "") {
-                console.error("[IA] ERRO: Chave API não configurada. Categorização pulada.");
+                console.error(`[IA - ${nomeTarefa}] ERRO: Chave API não configurada. Tarefa pulada.`);
                 return null;
             }
             
@@ -150,16 +183,17 @@ async function categorizarProdutosComIA(produtos) {
             }
         } catch (error) {
             attempts++;
-            console.warn(`Tentativa ${attempts} de chamada à IA falhou: ${error.message}.`);
+            console.warn(`[IA - ${nomeTarefa}] Tentativa ${attempts} falhou: ${error.message}.`);
             if (attempts < maxAttempts) {
                 await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
             } else {
-                console.error("Todas as tentativas de categorização falharam. Prosseguindo sem dados da IA.");
+                console.error(`[IA - ${nomeTarefa}] Todas as tentativas falharam. Prosseguindo sem dados da IA.`);
                 return null; 
             }
         }
     }
 }
+
 
 // --- Função de Extração (igual a antes) ---
 function extrairDadosNF(html) {
@@ -174,10 +208,10 @@ function extrairDadosNF(html) {
 
     const enderecoCompleto = $('table.table tbody tr:nth-child(2) td').text().trim();
     const partes = enderecoCompleto.split(', ');
-    partes.pop(); // Remove UF/Cidade
-    const cepCidade = partes.pop(); 
-    const cidade = cepCidade ? cepCidade.split(' - ')[1] : null; 
-    const endereco = partes.join(', ').trim(); 
+    const uf = partes[partes.length - 1]; // Ex: MG
+    const cepCidade = partes[partes.length - 2]; // Ex: 3106200 - BELO HORIZONTE
+    const cidade = cepCidade ? cepCidade.split(' - ')[1] : 'N/A';
+    const enderecoFormatado = partes.slice(0, partes.length - 2).join(', ').trim(); // Pega o resto
     
     const dataEmissaoRaw = $('#collapse4 table.table-hover').eq(2).find('tbody tr td:nth-child(4)').text().trim();
     const dataEmissaoNF = dataEmissaoRaw.split(' ')[0] || 'N/A'; 
@@ -222,8 +256,8 @@ function extrairDadosNF(html) {
         supermercado: {
             nome: nomeSupermercado,
             cnpj: cnpj, 
-            cidade: cidade || 'N/A',
-            endereco: endereco || 'N/A',
+            cidade: cidade,
+            endereco: `${enderecoFormatado}, ${cidade}, ${uf}`, // Endereço completo para geocodificação
             telefone: 'N/A', 
             imagem: `assets/img/${nomeSupermercado.toLowerCase().replace(/ /g, '')}.jpg`, 
             destaque: false,
@@ -233,8 +267,8 @@ function extrairDadosNF(html) {
 }
 
 
-// --- Função de Atualizar o DB (igual a antes) ---
-function atualizarDbJson(dadosSupermercado, produtosCompletos) {
+// --- Função de Atualizar o DB (MODIFICADA para receber coordenadas) ---
+function atualizarDbJson(dadosSupermercado, coordenadas, produtosCompletos) {
     try {
         const dbConteudo = fs.readFileSync(DB_PATH, 'utf8');
         const db = JSON.parse(dbConteudo);
@@ -249,16 +283,28 @@ function atualizarDbJson(dadosSupermercado, produtosCompletos) {
             const newId = Math.random().toString(36).substring(2, 6);
             novoSupermercado.id = newId;
             novoSupermercado.produtos = []; 
+            if (coordenadas) { // Adiciona coordenadas se foram encontradas
+                novoSupermercado.latitude = coordenadas.latitude;
+                novoSupermercado.longitude = coordenadas.longitude;
+            }
             db.supermercados.push(novoSupermercado);
             supermercadoExistente = novoSupermercado;
             console.log(`\n[Processamento] Adicionado novo supermercado (ID: ${newId}): ${supermercadoExistente.nome}`);
         } else {
+            console.log(`\n[Processamento] Supermercado encontrado (CNPJ: ${supermercadoExistente.cnpj}): ${supermercadoExistente.nome}`);
+            // Atualiza dados se necessário
             if (!supermercadoExistente.cnpj && novoSupermercado.cnpj) {
                  supermercadoExistente.cnpj = novoSupermercado.cnpj;
             }
             supermercadoExistente.cidade = novoSupermercado.cidade;
             supermercadoExistente.endereco = novoSupermercado.endereco;
-            console.log(`\n[Processamento] Supermercado encontrado (CNPJ: ${supermercadoExistente.cnpj}): ${supermercadoExistente.nome}`);
+
+            // Adiciona coordenadas APENAS SE não existirem
+            if (coordenadas && !supermercadoExistente.latitude) {
+                supermercadoExistente.latitude = coordenadas.latitude;
+                supermercadoExistente.longitude = coordenadas.longitude;
+                console.log(`[Processamento] Coordenadas (Lat: ${coordenadas.latitude}, Lon: ${coordenadas.longitude}) adicionadas ao supermercado.`);
+            }
         }
 
         let produtosAdicionadosCount = 0;
@@ -291,7 +337,7 @@ function atualizarDbJson(dadosSupermercado, produtosCompletos) {
 }
 
 
-// --- LÓGICA PRINCIPAL (MODIFICADA) ---
+// --- LÓGICA PRINCIPAL (MODIFICADA para chamar as duas IAs) ---
 async function main() {
     try {
         if (!fs.existsSync(NF_HTML_PATH)) {
@@ -313,38 +359,32 @@ async function main() {
             fs.writeFileSync(DEFINICAO_MAP_PATH, JSON.stringify({}, null, 2), 'utf8');
         }
 
-        // 2. Extrair dados da NF
+        // 2. Extrair dados da NF (Supermercado e Produtos)
         const dados = extrairDadosNF(fs.readFileSync(NF_HTML_PATH, 'utf8'));
         
-        // 3. Identificar produtos que precisam ser decifrados/categorizados
+        // 3. Identificar produtos que precisam ser decifrados
         const produtosParaIA = dados.produtos.filter(p => !categoriasMap[p.nome]);
+        let coordenadas = null;
 
-        // 4. Se houver produtos novos, chamar a IA
+        // 4. Se houver produtos novos, chamar a IA de Produtos
         if (produtosParaIA.length > 0) {
-            console.log(`[IA] ${produtosParaIA.length} produtos não encontrados no mapa. Consultando Gemini para decifrar e categorizar...`);
-            
-            // A IA agora retorna o formato CATMAT completo
+            console.log(`[IA] ${produtosParaIA.length} produtos não encontrados no mapa. Consultando Gemini para categorizar...`);
             const resultadosIA = await categorizarProdutosComIA(produtosParaIA); 
             
             if (resultadosIA) {
-                console.log("[IA] Dados recebidos. Salvando no definição_map.json...");
-                
+                console.log("[IA] Dados de produtos recebidos. Salvando no definição_map.json...");
                 let novasDefinicoes = 0;
                 
-                // Itera os resultados da IA (array de {nome_original, nome_decifrado, ...})
                 for (const item of resultadosIA) {
-                    
-                    // Salva a definição completa no mapa
                     categoriasMap[item.nome_original] = {
                         nome_decifrado: item.nome_decifrado,
-                        categoria_principal: item.categoria_principal, // Categoria do CATMAT vinda da IA
-                        subcategoria: item.subcategoria,      // Categoria do CATMAT vinda da IA
-                        Pdm: item.Pdm                         // Item exato do CATMAT vindo da IA
+                        categoria_principal: item.categoria_principal,
+                        subcategoria: item.subcategoria,
+                        Pdm: item.Pdm
                     };
                     novasDefinicoes++;
                 }
 
-                // Salva o definição_map.json atualizado
                 if (novasDefinicoes > 0) {
                     try {
                         fs.writeFileSync(DEFINICAO_MAP_PATH, JSON.stringify(categoriasMap, null, 2), 'utf8');
@@ -355,31 +395,39 @@ async function main() {
                 }
             }
         } else {
-            console.log("[Processamento] Todos os produtos já estavam no definição_map.json. Nenhuma chamada à IA foi necessária.");
+            console.log("[Processamento] Todos os produtos já estavam no definição_map.json.");
         }
         
         // 5. Enriquecimento final dos produtos
         const produtosCompletos = dados.produtos.map(p => {
-            const infoMapa = categoriasMap[p.nome]; // Pega a informação completa do mapa
-            
-            // Pega tudo do mapa; se não existir (raro), usa padrões.
+            const infoMapa = categoriasMap[p.nome];
             const nome_decifrado = infoMapa ? infoMapa.nome_decifrado : p.nome;
-            // Se a IA falhar (improvável), usa 'Desconhecida'
             const categoria_principal = infoMapa ? infoMapa.categoria_principal : 'Desconhecida';
             const subcategoria = infoMapa ? infoMapa.subcategoria : 'N/A';
             const pdm = infoMapa ? infoMapa.Pdm : 'N/A';
 
-            return {
-                ...p,
-                nome_decifrado: nome_decifrado,
-                categoria_principal: categoria_principal,
-                subcategoria: subcategoria,
-                Pdm: pdm // Adiciona o PDM ao produto que vai para o db.json
-            };
+            return { ...p, nome_decifrado, categoria_principal, subcategoria, Pdm: pdm };
         });
 
-        // 6. Atualiza o db.json (banco de dados principal)
-        atualizarDbJson(dados.supermercado, produtosCompletos); 
+        // 6. CHAMADA IA 2: Buscar Coordenadas (apenas se não as tivermos)
+        // Precisamos verificar o DB *antes* de chamar a IA
+        const dbTemp = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+        const supermercadoExistente = dbTemp.supermercados.find(s => s.cnpj === dados.supermercado.cnpj);
+
+        if (!supermercadoExistente || !supermercadoExistente.latitude) {
+            console.log(`[IA] Supermercado novo ou sem coordenadas. Consultando Gemini para geocodificação do endereço: ${dados.supermercado.endereco}`);
+            coordenadas = await obterCoordenadasComIA(dados.supermercado.endereco);
+            if(coordenadas) {
+                 console.log(`[IA] Coordenadas obtidas: Lat: ${coordenadas.latitude}, Lon: ${coordenadas.longitude}`);
+            } else {
+                 console.log(`[IA] Não foi possível obter coordenadas para este endereço.`);
+            }
+        } else {
+            console.log("[Processamento] Supermercado já possui coordenadas. Geocodificação pulada.");
+        }
+
+        // 7. Atualiza o db.json (banco de dados principal)
+        atualizarDbJson(dados.supermercado, coordenadas, produtosCompletos); 
         
     } catch (error) {
         console.error("\n--- ERRO NO PROCESSO DE RASPAGEM E SALVAMENTO ---");
