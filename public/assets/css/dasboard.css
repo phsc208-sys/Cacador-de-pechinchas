@@ -1,0 +1,50 @@
+/* --- Layout do Dashboard --- */
+
+/* Coluna de Filtros (Lateral Direita) */
+.filter-sticky-card {
+  position: sticky;
+  top: 20px;
+}
+
+/* Containers dos Gráficos (Lateral Esquerda) */
+.chart-container-bar {
+  height: 350px;
+  position: relative;
+}
+
+.chart-container-pie {
+  height: 350px;
+  max-width: 400px;
+  margin: auto;
+  position: relative;
+}
+
+/* --- Mensagens de Loading --- */
+.chart-loading {
+  text-align: center;
+  color: #6c757d; /* Cor "text-muted" do Bootstrap */
+  font-size: 0.875rem; /* Tamanho "small" do Bootstrap */
+  padding: 1.5rem 0;
+  display: block; 
+}
+
+/* --- Estilos dos Filtros --- */
+.filters-card .form-label {
+  font-weight: 500;
+}
+
+.filters-card .form-text {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+/* Destaca que um filtro está desabilitado */
+.form-select:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.7;
+}
+
+/* Usa a cor laranja do seu projeto no cabeçalho dos filtros */
+.filters-card .card-header h5 {
+  color: #e9710f;
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Caçador de Pechinchas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+  <header id="main-header" class="header d-flex flex-column align-items-start p-3 bg-warning text-dark">
+    </header>
+
+  <main class="main container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+      <h2>Dashboard de Produtos (NF-e)</h2>
+      <button id="btn-limpar-filtros" class="btn btn-sm btn-outline-secondary">Limpar Filtros</button>
+    </div>
+
+    <div class="row">
+
+      <div class="col-lg-8">
+        
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="text-center">Preço Médio por Supermercado</h5>
+            <p id="loading-bar" class="chart-loading">Carregando dados...</p>
+            <div class="chart-container-bar">
+              <canvas id="graficoPrecoMedio"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="text-center">Distribuição de Produtos</h5>
+            <p id="loading-pie" class="chart-loading">Carregando dados...</p>
+            <div class="chart-container-pie">
+              <canvas id="graficoDistribuicao"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card shadow-sm filters-card filter-sticky-card">
+          <div class="card-header">
+            <h5 class="mb-0">Filtros de Análise (CATMAT)</h5>
+          </div>
+          <div class="card-body">
+            
+            <div class="mb-3">
+              <label for="filtro-categoria" class="form-label">1. Categoria Principal</label>
+              <select id="filtro-categoria" class="form-select">
+                <option value="">Todas as Categorias</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="filtro-subcategoria" class="form-label">2. Subcategoria</label>
+              <select id="filtro-subcategoria" class="form-select" disabled>
+                <option value="">Todas as Subcategorias</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="filtro-pdm" class="form-label">3. PDM (Material)</label>
+              <select id="filtro-pdm" class="form-select" disabled>
+                <option value="">Todos os Materiais</option>
+                </select>
+            </div>
+            
+            <p class="form-text small">
+              Os filtros são dependentes (em cascata). Selecione uma categoria para habilitar as subcategorias.
+            </p>
+          </div>
+        </div>
+      </div> </div> </main>
+
+  <footer class="footer mt-auto p-3 bg-warning text-dark text-center">
+    © 2025 - Projeto Estabelecimentos
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/dashboard.js"></script> 
+</body>
+</html>

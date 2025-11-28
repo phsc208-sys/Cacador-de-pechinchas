@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,22 +7,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
-
 <body>
-  <!-- Cabeçalho -->
-  <header class="header d-flex flex-column align-items-start p-3 bg-warning text-dark">
-    <h1 class="mb-3">Caçador de Pechinchas</h1>
-    <div class="d-flex gap-2">
-      <a id="btn-inicio" class="btn btn-dark">Início</a>
-      <a id="btn-adicionar" class="btn btn-dark">Adicionar Experiência</a>
-      <a href="importar.html" class="btn btn-dark">Importar NF</a>
-      <a href="mapa.html" class="btn btn-dark">Mapa</a>
-    </div>
-    </div>
-  </header>
-  <!-- Conteúdo principal -->
+  <header id="main-header" class="header d-flex flex-column align-items-start p-3 bg-warning text-dark">
+    </header>
+
   <main class="main container mt-4">
-    <!-- Carrossel de destaques -->
     <div id="carouselDestaques" class="carousel slide mb-5" data-bs-ride="carousel">
       <div class="carousel-inner" id="destaquesContainer"></div>
       <button class="carousel-control-prev" type="button" data-bs-target="#carouselDestaques" data-bs-slide="prev">
@@ -34,11 +22,9 @@
       </button>
     </div>
 
-    <!-- Lista de supermercados -->
     <div class="row" id="supermercadosContainer"></div>
   </main>
 
-  <!--  responsável -->
   <section id="responsavel" class="mt-5 p-4 bg-light rounded text-center">
     <h2>Sobre o responsável</h2>
     <p><strong>Nome:</strong> Pedro Henrique Santos Cardoso</p>
@@ -46,14 +32,13 @@
     <p>Aluno do curso de Desenvolvimento Web, responsável pela criação e manutenção deste projeto.</p>
   </section>
 
-  <!-- Rodapé -->
   <footer class="footer mt-auto p-3 bg-warning text-dark text-center">
     © 2025 - Projeto Estabelecimentos
   </footer>
 
-
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script src="assets/js/nav.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
-
 </html>

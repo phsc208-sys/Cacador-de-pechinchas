@@ -1,23 +1,47 @@
-// --- CONSTANTES ESPECÍFICAS DO MAPA ---
+// CONSTANTES 
 const API_URL = "http://localhost:3000/supermercados";
-// Token de acesso público do Mapbox (para exemplos e testes)
-const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2p0MG01MXRqMGtiOTQzcWp6eDk3dDM2bSJ9.joccVEiInu997Nmr7--GgQ';
+const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoicGVkcm9jYXJkb3NvIiwiYSI6ImNtaTE2bXlnNTE2NnoybW9zNnZ5b2h4bWYifQ.uAMtpLEGogdxU7Mh5vYK0w'; 
+const BH_CENTER = [-43.9345, -19.9227];
 
-// --- LISTENER DA PÁGINA DO MAPA ---
+// VARIÁVEIS GLOBAIS 
+let map;
+
+// LISTENER DA PÁGINA 
 document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("mapaContainer")) {
-    montarMapa();
+    navigator.geolocation.getCurrentPosition(
+      processarGetCurrentPosition,
+      tratarErroLocalizacao
+    );
   }
 });
 
-// --- FUNÇÃO DO MAPA ---
+// LOCALIZAÇÃO DO USUÁRIO 
+function processarGetCurrentPosition(local) {
+  const userCoords = [local.coords.longitude, local.coords.latitude];
+  criarMapa(userCoords);
 
-/**
- * Busca dados de todos os supermercados e monta o mapa com marcadores.
- */
-async function montarMapa() {
+  let popup = new mapboxgl.Popup({ offset: 25 })
+    .setHTML(`<h3>Estou aqui!</h3>`);
+
+  new mapboxgl.Marker({ color: '#FFD700' }) 
+    .setLngLat(userCoords)
+    .setPopup(popup)
+    .addTo(map);
+
+  carregarMarcadoresSupermercados();
+}
+
+// ERRO DE LOCALIZAÇÃO
+function tratarErroLocalizacao() {
+  criarMapa(BH_CENTER);
+  carregarMarcadoresSupermercados();
+}
+
+// CRIAÇÃO DO MAPA
+function criarMapa(centerCoords) {
   const loadingMessage = document.getElementById("loading-message");
-  
+
   if (typeof mapboxgl === 'undefined') {
       loadingMessage.textContent = 'Erro: Biblioteca Mapbox não foi carregada.';
       loadingMessage.className = 'text-center mt-3 text-danger';
@@ -26,29 +50,37 @@ async function montarMapa() {
 
   mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
-  const map = new mapboxgl.Map({
+  map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-43.9345, -19.9227], // Coordenadas de Belo Horizonte
+      center: centerCoords,
       zoom: 12
   });
 
   map.addControl(new mapboxgl.NavigationControl());
+}
+
+// MARCADORES DOS SUPERMERCADOS
+async function carregarMarcadoresSupermercados() {
+  const loadingMessage = document.getElementById("loading-message");
+
+  if (!map) {
+    console.error("O mapa não foi inicializado.");
+    return;
+  }
 
   try {
     const response = await fetch(API_URL);
-    if (!response.ok) throw new Error("Erro ao buscar dados para o mapa.");
+    if (!response.ok) throw new Error("Erro ao buscar dados.");
 
     const supermercados = await response.json();
     
     if (supermercados.length === 0) {
-        loadingMessage.textContent = 'Nenhum supermercado cadastrado para exibir no mapa.';
+        loadingMessage.textContent = 'Nenhum supermercado cadastrado.';
         return;
     }
 
-    // Adiciona marcadores para cada supermercado
     for (const s of supermercados) {
-      // Verifica se o supermercado tem coordenadas válidas
       if (s.latitude && s.longitude) {
         const popup = new mapboxgl.Popup({ offset: 25 })
           .setHTML(`
@@ -57,18 +89,18 @@ async function montarMapa() {
             <a href="detalhe.html?id=${s.id}" class="btn btn-primary btn-sm">Ver Produtos</a>
           `);
 
-        new mapboxgl.Marker()
+        new mapboxgl.Marker({ color: '#e9710f' }) 
           .setLngLat([s.longitude, s.latitude])
           .setPopup(popup)
           .addTo(map);
       }
     }
 
-    loadingMessage.style.display = 'none'; // Esconde a mensagem de loading
+    loadingMessage.style.display = 'none';
 
   } catch (error) {
     console.error(error);
-    loadingMessage.textContent = 'Falha ao carregar os marcadores do mapa.';
+    loadingMessage.textContent = 'Falha ao carregar os marcadores.';
     loadingMessage.className = 'text-center mt-3 text-danger';
   }
 }
