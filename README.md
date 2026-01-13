@@ -1,26 +1,51 @@
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=21634690)
+# Caçador de Pechinchas
 
-# Trabalho Prático 07 - Semanas 13 e 14
+O **Caçador de Pechinchas** é uma solução *full-stack* desenvolvida para automatizar a extração, normalização e visualização de dados provenientes de notas fiscais de varejo. O sistema transforma dados brutos e abreviados em informações estruturadas, permitindo uma análise comparativa de preços e geolocalização de pontos de venda.
 
-A partir dos dados cadastrados na etapa anterior, vamos trabalhar formas de apresentação que representem de forma clara e interativa as informações do seu projeto. Você poderá usar gráficos (barra, linha, pizza), mapas, calendários ou outras formas de visualização. Seu desafio é entregar uma página Web que organize, processe e exiba os dados de forma compreensível e esteticamente agradável.
+## 🛠️ Arquitetura e Tecnologias
 
-Com base nos tipos de projetos escohidos, você deve propor **visualizações que estimulem a interpretação, agrupamento e exibição criativa dos dados**, trabalhando tanto a lógica quanto o design da aplicação.
+O projeto foi estruturado para garantir a integridade dos dados e a performance na renderização das análises:
 
-Sugerimos o uso das seguintes ferramentas acessíveis: [FullCalendar](https://fullcalendar.io/), [Chart.js](https://www.chartjs.org/), [Mapbox](https://docs.mapbox.com/api/), para citar algumas.
+* **Backend:** Node.js com Express para coordenação dos fluxos de dados.
+* **Processamento de IA:** Integração com a API do Google Gemini para categorização técnica (Padrão CATMAT) e limpeza de abreviações.
+* **Data Scraping:** Utilização de Cheerio para extração precisa de informações de documentos HTML/NFs.
+* **Frontend:** Dashboards interativos com Chart.js e mapeamento dinâmico com Mapbox API.
+* **Persistência:** Base de dados em formato JSON para garantir agilidade no desenvolvimento e portabilidade.
 
-## Informações do trabalho
+## 🚀 Funcionalidades Principais
 
-- Nome: Pedro Henrique Santos Cardoso
-- Matricula: 897616
-- Proposta de projeto escolhida: Caçador de Pechinchas
-- Breve descrição sobre seu projeto: Um site que lista supermercados e seus produtos, permitindo o cadastro, edição e exclusão (CRUD) de estabelecimentos.
+### 1. Processamento Inteligente de Notas Fiscais
+O motor principal do sistema (`processarNF.js`) utiliza Engenharia de Prompts para converter descrições genéricas de produtos em categorias normalizadas. O sistema identifica automaticamente o nome do produto, a marca, a quantidade e a unidade de medida, mesmo quando os dados originais estão altamente abreviados.
 
-**Print da tela com a implementação**
+### 2. Geocodificação e Análise Espacial
+Através da API de geolocalização, o sistema converte endereços de estabelecimentos em coordenadas geográficas, permitindo a visualização de "manchas de preço" em um mapa interativo.
 
-- Mapa Interativo (mapa.html): Usando o Mapbox, a página agora exibe os supermercados da API como marcadores num mapa. O sistema também usa a geolocalização do navegador para centralizar o mapa no usuário e adicionar um pin "Estou aqui!".
+### 3. Dashboards de Mercado
+Visualização de métricas como:
+* Preço médio por categoria.
+* Histórico de variação de preços de produtos específicos.
+* Comparativo entre diferentes redes de varejo.
 
-- Dashboard de Análise (dashboard.html): Usando o Chart.js, uma nova página de dashboard exibe um gráfico de barras (Preço Médio por Supermercado) e um gráfico de pizza (Distribuição de Produtos). O principal recurso é um painel de filtros em cascata (Categoria, Subcategoria, PDM) que atualiza os dois gráficos em tempo real.
+## 📦 Estrutura do Projeto
 
-<img src="public\assets\img\para o readme\dash.png" alt="IMAGEM GET AQUI">
+├── db/                   # Persistência de dados (JSON)
+├── public/               # Interface e lógica do cliente
+│   ├── assets/js/        # Controladores (Mapa, Dashboard, App)
+│   └── assets/css/       # Estilização modular
+├── server.js             # Servidor e rotas da API
+├── processarNF.js        # Lógica de integração com IA (Gemini)
+└── importarNF.js         # Motor de extração de dados brutos
 
-<img src="public\assets\img\para o readme\map.png" alt="IMAGEM GET AQUI">
+## ⚙️ Configuração
+
+### Para executar o projeto localmente, é necessário configurar as variáveis de ambiente em um arquivo .env:
+GEMINI_API_KEY=tua_chave_aqui
+MAPBOX_TOKEN=teu_token_aqui
+PORT=3000
+
+### Instalação de dependências e execução:
+
+npm install
+node server.js
+
+
